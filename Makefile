@@ -3,7 +3,15 @@ DEFAULT := help
 GO ?= go
 CMD_PKG := ./cmd/tutor
 
-.PHONY: help fmt vet test check build run once clean
+# Output binary path. Override with `make BIN=...` or `make BINDIR=...`.
+BINDIR ?= bin
+BIN ?= $(BINDIR)/tutor
+
+# Install location (used by `make install` and `make binlink`).
+INSTALL_DIR ?= $(HOME)/.local/bin
+INSTALL_BIN ?= $(INSTALL_DIR)/tutor
+
+.PHONY: help fmt vet test check build run clean binlink install
 
 help:
 	@printf "%s\n" \
@@ -13,7 +21,7 @@ help:
 	"  make test   - run go test" \
 	"  make check  - run vet + test" \
 	"  make build  - build ./cmd/tutor into $(BIN)" \
-	"  make run    - run the turor" \
+	"  make run    - run the tutor" \
 	"  make clean  - remove built binary"
 
 fmt:
@@ -28,6 +36,8 @@ test:
 check: vet test
 
 build:
+	@mkdir -p "$(dir $(BIN))"
+	rm -f "$(HOME)/.local/bin/tutor"
 	$(GO) build -o "$(BIN)" $(CMD_PKG)
 
 run:
@@ -36,6 +46,9 @@ run:
 clean:
 	rm -f "$(BIN)"
 
-binlink:
-	rm ../tutor && ln -s $(pwd)/cmd/py/tutor.py ~/.local/bin/tutor
+binlink: build
+	ln -sf "$(abspath $(BIN))" "$(INSTALL_BIN)"
+
+install: build
+	cp -f "$(BIN)" "$(INSTALL_BIN)"
 

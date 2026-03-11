@@ -1,3 +1,3 @@
-module module/tutor
+module module/lib
 
 go 1.23.3

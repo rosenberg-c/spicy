@@ -33,8 +33,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	// Parse command-line arguments
-	config := parseArgs()
+	config := parseArgs(os.Args[1:], defaultConfig())
 
 	fmt.Println("== Generate Tutorial ==")
 
@@ -92,40 +91,42 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func parseArgs() Config {
-	config := Config{
+func defaultConfig() Config {
+	return Config{
 		ValidationModel: "openai/gpt-5.2",
 		GenerationModel: "openai/gpt-5.2",
 		Verbose:         false,
 	}
+}
 
-	args := os.Args[1:]
+func parseArgs(args []string, config Config) Config {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 
-		if arg == "-v" || arg == "--verbose" {
+		switch arg {
+		case "-v", "--verbose":
 			config.Verbose = true
-		} else if arg == "--validation-model" {
+		case "--validation-model":
 			if i+1 < len(args) {
 				config.ValidationModel = args[i+1]
 				i++
 			}
-		} else if arg == "--generation-model" {
+		case "--generation-model":
 			if i+1 < len(args) {
 				config.GenerationModel = args[i+1]
 				i++
 			}
-		} else if arg == "-m" || arg == "--model" {
+		case "-m", "--model":
 			// Set both models to the same value for convenience
 			if i+1 < len(args) {
 				config.ValidationModel = args[i+1]
 				config.GenerationModel = args[i+1]
 				i++
 			}
-		} else if arg == "-h" || arg == "--help" {
+		case "-h", "--help":
 			printHelp()
 			os.Exit(0)
-		} else {
+		default:
 			// Treat as question
 			config.Question = append(config.Question, arg)
 		}
