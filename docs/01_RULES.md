@@ -73,3 +73,22 @@ Examples:
 
 - Consider context.Context in method signatures.
 - Treat file-backed repos as prototypes, not scalable storage.
+
+## 11. Keep lines under 80 characters
+
+- Wrap long strings, especially in prompts, error messages, and help text.
+- Use multiline strings or concatenation for readability.
+
+Examples:
+
+- Bad: `fmt.Sprintf("You are a senior coder: write a short commit message, one row only. Do not include the actual diff, or any other thoughts, only the commit message. Always use Capital character at the beginning of the commit message.")`
+
+- Good:
+  ```go
+  fmt.Sprintf(`You are a senior coder: write a short commit message, one row only.
+  Do not include the actual diff, or any other thoughts, only the commit message.
+  Always use Capital character at the beginning of the commit message.`)
+  ```
+
+- For format strings, break at natural boundaries (sentences, clauses)
+- For function calls with many args, use one arg per line when exceeding 100 chars
