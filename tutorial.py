@@ -2,34 +2,35 @@
 
 import subprocess
 import sys
+from typing import Optional
 
 
-def spawn_agent_response(model, prompt):
+def spawn_agent_response(
+    model: str, prompt: str
+) -> tuple[Optional[str], Optional[Exception]]:
+    result = subprocess.run(
+        ["opencode", "run", "--agent", "build", "-m", model, prompt],
+        stdout=subprocess.PIPE,
+        stderr=sys.stderr,
+        text=True,
+    )
+    stdout = result.stdout
+
+    if result.returncode != 0:
+        error = subprocess.CalledProcessError(result.returncode, result.args)
+        return None, error
+
+    return stdout.strip(), None
+
+
+def save_to_disk(
+    content: str, output_path: str
+) -> tuple[Optional[str], Optional[Exception]]:
+    from pathlib import Path
+    import os
+    import tempfile
+
     try:
-        result = subprocess.run(
-            ["opencode", "run", "--agent", "build", "-m", model, prompt],
-            stdout=subprocess.PIPE,
-            stderr=sys.stderr,
-            text=True,
-        )
-        stdout = result.stdout
-
-        if result.returncode != 0:
-            raise subprocess.CalledProcessError(result.returncode, result.args)
-
-        return stdout.strip()
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return None
-
-
-def save_to_disk(content, output_path):
-    try:
-        from pathlib import Path
-        import os
-        import tempfile
-
         path = Path(os.path.expanduser(output_path)).resolve()
         if str(path.parent):
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -50,18 +51,17 @@ def save_to_disk(content, output_path):
             tmp_path = Path(tmp.name)
 
         tmp_path.replace(path)
-        return str(path)
+        return str(path), None
 
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return None
+        return None, e
 
 
-def get_user_input():
+def get_user_input() -> tuple[Optional[str], Optional[ValueError]]:
     user_input = input("-- input: ").strip()
     if not user_input:
-        raise ValueError("You must provide an input")
-    return user_input
+        return None, ValueError("You must provide an input")
+    return user_input, None
 
 
 if __name__ == "__main__":
@@ -76,7 +76,11 @@ if __name__ == "__main__":
     )
 
     model = "openai/gpt-5.2"
-    user_input = get_user_input()
+    user_input, err = get_user_input()
+    if err:
+        print(f"Error getting user input: {err}", file=sys.stderr)
+        sys.exit(1)
+
     prompt = (
         "You are a senior coder:"
         "Write a tutorial to answer the user question, as detailed as you can. "
@@ -85,7 +89,15 @@ if __name__ == "__main__":
     )
 
     print("Generating tutorial...", file=sys.stderr)
-    tutorial = spawn_agent_response(model=model, prompt=prompt)
+    tutorial, err = spawn_agent_response(model=model, prompt=prompt)
+    if err:
+        print(f"Error spawning agent response: {err}", file=sys.stderr)
+        sys.exit(1)
+    assert tutorial is not None
 
-    fpath = save_to_disk(content=tutorial, output_path=output_path)
+    fpath, err = save_to_disk(content=tutorial, output_path=output_path)
+    if err:
+        print(f"Error saving to disk: {err}", file=sys.stderr)
+        sys.exit(1)
+
     print(f"Saved to: {fpath}")
