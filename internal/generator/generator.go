@@ -6,18 +6,20 @@ import (
 	"log/slog"
 	"os"
 
-	"module/tutor/internal/agent"
+	"module/lib/internal/agent"
 )
 
 type Generator struct {
 	agent  agent.Runner
+	model  string
 	logger *slog.Logger
 }
 
-// New creates a Generator that uses the given agent to generate tutorials.
-func New(agent agent.Runner) *Generator {
+// New creates a Generator that uses the given agent and model to generate tutorials.
+func New(agent agent.Runner, model string) *Generator {
 	return &Generator{
-		agent: agent,
+		agent:  agent,
+		model:  model,
 		logger: slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 			Level: slog.LevelInfo,
 		})),
@@ -29,10 +31,10 @@ func New(agent agent.Runner) *Generator {
 func (g *Generator) Generate(ctx context.Context, input string) (string, error) {
 	prompt := BuildTutorialPrompt(input)
 
-	g.logger.Debug("generating tutorial", "input", input)
+	g.logger.Debug("generating tutorial", "input", input, "model", g.model)
 
-	// Call agent with hardcoded model
-	content, err := g.agent.Run(ctx, "openai/gpt-5.2", prompt)
+	// Call agent with configured model
+	content, err := g.agent.Run(ctx, g.model, prompt)
 	if err != nil {
 		return "", fmt.Errorf("agent call failed: %w", err)
 	}

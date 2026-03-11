@@ -7,18 +7,20 @@ import (
 	"log/slog"
 	"os"
 
-	"module/tutor/internal/agent"
+	"module/lib/internal/agent"
 )
 
 type Validator struct {
 	agent  agent.Runner
+	model  string
 	logger *slog.Logger
 }
 
-// New creates a Validator that uses the given agent to validate user input.
-func New(agent agent.Runner) *Validator {
+// New creates a Validator that uses the given agent and model to validate user input.
+func New(agent agent.Runner, model string) *Validator {
 	return &Validator{
-		agent: agent,
+		agent:  agent,
+		model:  model,
 		logger: slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 			Level: slog.LevelInfo,
 		})),
@@ -31,10 +33,10 @@ func New(agent agent.Runner) *Validator {
 func (v *Validator) Validate(ctx context.Context, input string) (*ValidationResponse, error) {
 	prompt := BuildValidationPrompt(input)
 
-	v.logger.Debug("validating input", "input", input)
+	v.logger.Debug("validating input", "input", input, "model", v.model)
 
-	// Call agent with hardcoded model
-	response, err := v.agent.Run(ctx, "openai/gpt-5.2", prompt)
+	// Call agent with configured model
+	response, err := v.agent.Run(ctx, v.model, prompt)
 	if err != nil {
 		return nil, fmt.Errorf("agent call failed: %w", err)
 	}

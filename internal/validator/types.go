@@ -1,4 +1,3 @@
-// Package validator
 package validator
 
 type Action string

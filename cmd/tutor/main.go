@@ -9,17 +9,18 @@ import (
 	"strings"
 	"time"
 
-	"module/tutor/internal/agent"
-	"module/tutor/internal/filewriter"
-	"module/tutor/internal/generator"
-	"module/tutor/internal/validator"
+	"module/lib/internal/agent"
+	"module/lib/internal/filewriter"
+	"module/lib/internal/generator"
+	"module/lib/internal/validator"
 )
 
 // Config holds command-line arguments.
 type Config struct {
-	Question []string
-	Verbose  bool
-	Model    string
+	Question        []string
+	Verbose         bool
+	ValidationModel string
+	GenerationModel string
 }
 
 func main() {
@@ -43,12 +44,13 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("get user input: %w", err)
 	}
 
-	// Create agent
-	agentRunner := agent.New(config.Verbose)
+	// Create separate agents for validation and generation
+	validationAgent := agent.New(config.Verbose)
+	generationAgent := agent.New(config.Verbose)
 
 	// Validate input
 	fmt.Fprintln(os.Stderr, "Validating input...")
-	v := validator.New(agentRunner)
+	v := validator.New(validationAgent, config.ValidationModel)
 	validationResult, err := v.Validate(ctx, userInput)
 	if err != nil {
 		return fmt.Errorf("validation failed: %w", err)
@@ -74,7 +76,7 @@ func run(ctx context.Context) error {
 
 	// Generate tutorial
 	fmt.Fprintln(os.Stderr, "Generating tutorial...")
-	gen := generator.New(agentRunner)
+	gen := generator.New(generationAgent, config.GenerationModel)
 	content, err := gen.Generate(ctx, userInput)
 	if err != nil {
 		return fmt.Errorf("generation failed: %w", err)
@@ -92,8 +94,9 @@ func run(ctx context.Context) error {
 
 func parseArgs() Config {
 	config := Config{
-		Model:   "openai/gpt-5.2",
-		Verbose: false,
+		ValidationModel: "openai/gpt-5.2",
+		GenerationModel: "openai/gpt-5.2",
+		Verbose:         false,
 	}
 
 	args := os.Args[1:]
@@ -102,9 +105,21 @@ func parseArgs() Config {
 
 		if arg == "-v" || arg == "--verbose" {
 			config.Verbose = true
-		} else if arg == "-m" || arg == "--model" {
+		} else if arg == "--validation-model" {
 			if i+1 < len(args) {
-				config.Model = args[i+1]
+				config.ValidationModel = args[i+1]
+				i++
+			}
+		} else if arg == "--generation-model" {
+			if i+1 < len(args) {
+				config.GenerationModel = args[i+1]
+				i++
+			}
+		} else if arg == "-m" || arg == "--model" {
+			// Set both models to the same value for convenience
+			if i+1 < len(args) {
+				config.ValidationModel = args[i+1]
+				config.GenerationModel = args[i+1]
 				i++
 			}
 		} else if arg == "-h" || arg == "--help" {
@@ -123,13 +138,18 @@ func printHelp() {
 	fmt.Println("Usage: tutor [options] [question...]")
 	fmt.Println()
 	fmt.Println("Options:")
-	fmt.Println("  -v, --verbose    Show verbose agent output")
-	fmt.Println("  -m, --model STR  Model to use (default: openai/gpt-5.2)")
-	fmt.Println("  -h, --help       Show this help")
+	fmt.Println("  -v, --verbose              Show verbose agent output")
+	fmt.Println("  -m, --model STR            Model to use for both validation and generation")
+	fmt.Println("                             (default: openai/gpt-5.2)")
+	fmt.Println("  --validation-model STR     Model to use for validation only")
+	fmt.Println("  --generation-model STR     Model to use for generation only")
+	fmt.Println("  -h, --help                 Show this help")
 	fmt.Println()
 	fmt.Println("Examples:")
 	fmt.Println("  tutor how to use docker compose")
 	fmt.Println("  tutor -v how does grep work")
+	fmt.Println("  tutor -m openai/gpt-4 how to use ffmpeg")
+	fmt.Println("  tutor --validation-model openai/gpt-4o --generation-model openai/o1 question")
 }
 
 func getUserInput(question []string) (string, error) {
