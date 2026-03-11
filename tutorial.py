@@ -3,7 +3,20 @@
 import json
 import subprocess
 import sys
+from enum import Enum
 from typing import Optional
+
+
+class Action(str, Enum):
+    CONTINUE = "continue"
+    EXIT = "exit"
+
+
+class ValidationKey(str, Enum):
+    ACTION = "action"
+    REASON = "reason"
+    SUGGESTIONS = "suggestions"
+    SUGGESTED_FILENAME = "suggested_filename"
 
 
 def spawn_agent_response(
@@ -76,16 +89,16 @@ Respond ONLY with a valid JSON object (no markdown, no extra text) in this exact
 
 If the request is specific enough:
 {{
-  "action": "continue",
-  "reason": "brief explanation of your decision",
-  "suggested_filename": "short-descriptive-name.md"
+  "{ValidationKey.ACTION.value}": "{Action.CONTINUE.value}",
+  "{ValidationKey.REASON.value}": "brief explanation of your decision",
+  "{ValidationKey.SUGGESTED_FILENAME.value}": "short-descriptive-name.md"
 }}
 
 If the request is too ambiguous:
 {{
-  "action": "exit",
-  "reason": "brief explanation of your decision",
-  "suggestions": ["clarifying question 1", "clarifying question 2"]
+  "{ValidationKey.ACTION.value}": "{Action.EXIT.value}",
+  "{ValidationKey.REASON.value}": "brief explanation of your decision",
+  "{ValidationKey.SUGGESTIONS.value}": ["clarifying question 1", "clarifying question 2"]
 }}
 
 Guidelines for suggested_filename:
@@ -123,19 +136,25 @@ def validate_user_input(
         validation_result = json.loads(response)
 
         # Validate the structure
-        if "action" not in validation_result or "reason" not in validation_result:
+        if (
+            ValidationKey.ACTION.value not in validation_result
+            or ValidationKey.REASON.value not in validation_result
+        ):
             return None, ValueError(
                 "Invalid validation response structure: missing required fields"
             )
 
-        if validation_result["action"] not in ["continue", "exit"]:
+        if validation_result[ValidationKey.ACTION.value] not in [
+            Action.CONTINUE.value,
+            Action.EXIT.value,
+        ]:
             return None, ValueError(
-                f"Invalid action value: {validation_result['action']}"
+                f"Invalid action value: {validation_result[ValidationKey.ACTION.value]}"
             )
 
         # Validate action-specific fields
-        if validation_result["action"] == "continue":
-            if "suggested_filename" not in validation_result:
+        if validation_result[ValidationKey.ACTION.value] == Action.CONTINUE.value:
+            if ValidationKey.SUGGESTED_FILENAME.value not in validation_result:
                 return None, ValueError(
                     "Missing required field 'suggested_filename' for continue action"
                 )
@@ -202,16 +221,21 @@ if __name__ == "__main__":
     assert validation_result is not None
 
     # Check if we should exit based on validation
-    if validation_result["action"] == "exit":
-        print(f"\n{validation_result['reason']}", file=sys.stderr)
-        if "suggestions" in validation_result and validation_result["suggestions"]:
+    if validation_result[ValidationKey.ACTION.value] == Action.EXIT.value:
+        print(f"\n{validation_result[ValidationKey.REASON.value]}", file=sys.stderr)
+        if (
+            ValidationKey.SUGGESTIONS.value in validation_result
+            and validation_result[ValidationKey.SUGGESTIONS.value]
+        ):
             print("\nSuggestions:", file=sys.stderr)
-            for suggestion in validation_result["suggestions"]:
+            for suggestion in validation_result[ValidationKey.SUGGESTIONS.value]:
                 print(f"  - {suggestion}", file=sys.stderr)
         sys.exit(0)
 
     # Ask for save location after validation passes
-    suggested_filename = validation_result.get("suggested_filename", "tutorial.md")
+    suggested_filename = validation_result.get(
+        ValidationKey.SUGGESTED_FILENAME.value, "tutorial.md"
+    )
     output_path = (
         input(f"Save to file (default: {suggested_filename}) => ").strip()
         or suggested_filename
