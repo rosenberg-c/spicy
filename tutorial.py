@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
+import json
 import subprocess
 import sys
 from typing import Optional
 
 
 def spawn_agent_response(
-    model: str, prompt: str
+    model: str, prompt: str, verbose: bool = False
 ) -> tuple[Optional[str], Optional[Exception]]:
     result = subprocess.run(
         ["opencode", "run", "--agent", "build", "-m", model, prompt],
         stdout=subprocess.PIPE,
-        stderr=sys.stderr,
+        stderr=sys.stderr if verbose else subprocess.DEVNULL,
         text=True,
     )
     stdout = result.stdout
@@ -64,32 +65,162 @@ def get_user_input() -> tuple[Optional[str], Optional[ValueError]]:
     return user_input, None
 
 
-if __name__ == "__main__":
-    import argparse
+def build_validation_prompt(user_input: str) -> str:
+    return f"""You are a senior technical writer and educator. Analyze the following user request for a tutorial:
 
-    parser = argparse.ArgumentParser(description="Generate tutorial")
-    args = parser.parse_args()
+"{user_input}"
 
-    print("== Genretae Tutorial ==")
-    output_path = (
-        input("Save to file (default: tutorial.md) => ").strip() or "tutorial.md"
+Determine if this request is specific and clear enough to create a useful tutorial, or if it's too ambiguous and needs clarification.
+
+Respond ONLY with a valid JSON object (no markdown, no extra text) in this exact format:
+
+If the request is specific enough:
+{{
+  "action": "continue",
+  "reason": "brief explanation of your decision",
+  "suggested_filename": "short-descriptive-name.md"
+}}
+
+If the request is too ambiguous:
+{{
+  "action": "exit",
+  "reason": "brief explanation of your decision",
+  "suggestions": ["clarifying question 1", "clarifying question 2"]
+}}
+
+Guidelines for suggested_filename:
+- Use lowercase with hyphens (kebab-case)
+- Keep it short but descriptive (2-5 words max)
+- Must end with .md
+- Examples: "ffmpeg-video-conversion.md", "pandas-csv-guide.md", "echo-command-basics.md"
+
+Examples of decisions:
+- "how does ffmpeg work" -> too broad, suggest: "how to convert video formats", "how to extract audio", etc.
+- "how to convert mp4 to webm using ffmpeg" -> specific enough, continue, suggest: "ffmpeg-mp4-to-webm.md"
+- "explain python" -> too vague, suggest: "which aspect of Python", "what's your experience level", etc.
+- "how to read a CSV file in Python using pandas" -> specific enough, continue, suggest: "pandas-csv-reading.md"
+- "docker" -> too vague, suggest: "docker basics", "docker compose", "dockerfile best practices", etc.
+- "echo command" -> specific enough, continue, suggest: "echo-command-guide.md"
+
+Think carefully about whether the request has enough context and specificity to create a useful, focused tutorial."""
+
+
+def validate_user_input(
+    model: str, user_input: str, verbose: bool = False
+) -> tuple[Optional[dict], Optional[Exception]]:
+    validation_prompt = build_validation_prompt(user_input)
+    response, err = spawn_agent_response(
+        model=model, prompt=validation_prompt, verbose=verbose
     )
 
-    model = "openai/gpt-5.2"
-    user_input, err = get_user_input()
     if err:
-        print(f"Error getting user input: {err}", file=sys.stderr)
-        sys.exit(1)
+        return None, err
 
-    prompt = (
-        "You are a senior coder:"
+    assert response is not None
+
+    try:
+        # Parse the JSON response
+        validation_result = json.loads(response)
+
+        # Validate the structure
+        if "action" not in validation_result or "reason" not in validation_result:
+            return None, ValueError(
+                "Invalid validation response structure: missing required fields"
+            )
+
+        if validation_result["action"] not in ["continue", "exit"]:
+            return None, ValueError(
+                f"Invalid action value: {validation_result['action']}"
+            )
+
+        # Validate action-specific fields
+        if validation_result["action"] == "continue":
+            if "suggested_filename" not in validation_result:
+                return None, ValueError(
+                    "Missing required field 'suggested_filename' for continue action"
+                )
+
+        return validation_result, None
+
+    except json.JSONDecodeError as e:
+        return None, ValueError(
+            f"Failed to parse JSON response: {e}\nResponse was: {response}"
+        )
+
+
+def build_tutorial_prompt(user_input: str) -> str:
+    return (
+        "You are a senior coder. "
         "Write a tutorial to answer the user question, as detailed as you can. "
         "The response must be valid markdown. "
         f"User input:\n{user_input}"
     )
 
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Generate tutorial", usage="%(prog)s [question...]"
+    )
+    parser.add_argument(
+        "question",
+        nargs="*",
+        help="The question for the tutorial (e.g., 'how does echo command work')",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Show verbose output from agent commands",
+    )
+    args = parser.parse_args()
+
+    print("== Genretae Tutorial ==")
+
+    model = "openai/gpt-5.2"
+
+    # Get user input from CLI args or prompt
+    if args.question:
+        user_input = " ".join(args.question)
+        print(f"Question: {user_input}")
+    else:
+        user_input, err = get_user_input()
+        if err:
+            print(f"Error getting user input: {err}", file=sys.stderr)
+            sys.exit(1)
+        assert user_input is not None
+
+    # Validate user input first
+    print("Validating input...", file=sys.stderr)
+    validation_result, err = validate_user_input(
+        model=model, user_input=user_input, verbose=args.verbose
+    )
+    if err:
+        print(f"Error validating user input: {err}", file=sys.stderr)
+        sys.exit(1)
+    assert validation_result is not None
+
+    # Check if we should exit based on validation
+    if validation_result["action"] == "exit":
+        print(f"\n{validation_result['reason']}", file=sys.stderr)
+        if "suggestions" in validation_result and validation_result["suggestions"]:
+            print("\nSuggestions:", file=sys.stderr)
+            for suggestion in validation_result["suggestions"]:
+                print(f"  - {suggestion}", file=sys.stderr)
+        sys.exit(0)
+
+    # Ask for save location after validation passes
+    suggested_filename = validation_result.get("suggested_filename", "tutorial.md")
+    output_path = (
+        input(f"Save to file (default: {suggested_filename}) => ").strip()
+        or suggested_filename
+    )
+
+    # Continue with tutorial generation
     print("Generating tutorial...", file=sys.stderr)
-    tutorial, err = spawn_agent_response(model=model, prompt=prompt)
+    prompt = build_tutorial_prompt(user_input)
+    tutorial, err = spawn_agent_response(model=model, prompt=prompt, verbose=args.verbose)
     if err:
         print(f"Error spawning agent response: {err}", file=sys.stderr)
         sys.exit(1)
