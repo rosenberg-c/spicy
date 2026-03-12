@@ -10,27 +10,56 @@ import (
 	"time"
 
 	"module/lib/internal/agent"
+
+	"github.com/urfave/cli/v2"
 )
 
-// Config holds command-line arguments.
-type Config struct {
-	Prefix  string
-	Copy    bool
-	Verbose bool
-	Model   string
-}
-
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+	app := &cli.App{
+		Name:  "gitmessage",
+		Usage: "Generate commit messages using AI",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "Show verbose agent output",
+			},
+			&cli.BoolFlag{
+				Name:    "copy",
+				Aliases: []string{"c"},
+				Usage:   "Copy result to clipboard",
+			},
+			&cli.StringFlag{
+				Name:    "model",
+				Aliases: []string{"m"},
+				Value:   "openai/gpt-5.2-codex",
+				Usage:   "Model to use",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			ctx, cancel := context.WithTimeout(
+				context.Background(),
+				2*time.Minute,
+			)
+			defer cancel()
 
-	if err := run(ctx); err != nil {
+			return run(ctx, c)
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context) error {
-	config := parseArgs(os.Args[1:])
+func run(ctx context.Context, c *cli.Context) error {
+	// Get flag values from cli.Context
+	verbose := c.Bool("verbose")
+	model := c.String("model")
+	copy := c.Bool("copy")
+
+	// Get positional arguments
+	prefix := c.Args().First() // First positional arg
 
 	// Get staged diff
 	fmt.Fprintln(os.Stderr, "Running: git diff --staged")
@@ -49,11 +78,11 @@ func run(ctx context.Context) error {
 	prompt := buildPrompt(diff)
 
 	// Generate commit message
-	fmt.Fprintf(os.Stderr, "Running: opencode run --agent build -m %s\n", config.Model)
+	fmt.Fprintf(os.Stderr, "Running: opencode run --agent build -m %s\n", model)
 	fmt.Fprintln(os.Stderr, "Generating commit message...")
 
-	agentRunner := agent.New(config.Verbose)
-	generatedMsg, err := agentRunner.Run(ctx, config.Model, prompt)
+	agentRunner := agent.New(verbose)
+	generatedMsg, err := agentRunner.Run(ctx, model, prompt)
 	if err != nil {
 		return fmt.Errorf("generate commit message: %w", err)
 	}
@@ -62,8 +91,8 @@ func run(ctx context.Context) error {
 
 	// Conditionally prepend prefix
 	var finalMsg string
-	if config.Prefix != "" {
-		finalMsg = fmt.Sprintf("%s: %s", config.Prefix, generatedMsg)
+	if prefix != "" {
+		finalMsg = fmt.Sprintf("%s: %s", prefix, generatedMsg)
 	} else {
 		finalMsg = generatedMsg
 	}
@@ -72,68 +101,13 @@ func run(ctx context.Context) error {
 	fmt.Printf("==> %s\n", finalMsg)
 
 	// Optionally copy to clipboard
-	if config.Copy {
+	if copy {
 		if err := copyToClipboard(finalMsg); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to copy to clipboard: %v\n", err)
 		}
 	}
 
 	return nil
-}
-
-func parseArgs(args []string) Config {
-	config := Config{
-		Model:   "openai/gpt-5.2-codex",
-		Verbose: false,
-		Copy:    false,
-	}
-
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-
-		switch arg {
-		case "-v", "--verbose":
-			config.Verbose = true
-		case "-c", "--copy":
-			config.Copy = true
-		case "-m", "--model":
-			if i+1 < len(args) {
-				config.Model = args[i+1]
-				i++
-			}
-		case "-h", "--help":
-			printHelp()
-			os.Exit(0)
-		default:
-			// First non-flag argument is the prefix
-			if config.Prefix == "" {
-				config.Prefix = arg
-			}
-		}
-	}
-
-	return config
-}
-
-func printHelp() {
-	fmt.Println("Usage: gitmessage [options] [prefix]")
-	fmt.Println()
-	fmt.Println("Generate commit messages using AI based on staged git changes.")
-	fmt.Println()
-	fmt.Println("Options:")
-	fmt.Println("  -c, --copy              Copy result to clipboard")
-	fmt.Println("  -v, --verbose           Show verbose agent output")
-	fmt.Println("  -m, --model STR         Model to use (default: openai/gpt-5.2-codex)")
-	fmt.Println("  -h, --help              Show this help")
-	fmt.Println()
-	fmt.Println("Arguments:")
-	fmt.Println("  prefix                  Optional prefix for commit message (e.g., 'feat', 'fix')")
-	fmt.Println()
-	fmt.Println("Examples:")
-	fmt.Println("  gitmessage")
-	fmt.Println("  gitmessage feat")
-	fmt.Println("  gitmessage fix -c")
-	fmt.Println("  gitmessage -m openai/gpt-4 refactor")
 }
 
 func buildPrompt(diff string) string {
