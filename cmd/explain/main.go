@@ -11,36 +11,84 @@ import (
 	"strings"
 	"time"
 
+	"github.com/urfave/cli/v2"
 	"module/lib/internal/agent"
 	"module/lib/internal/filewriter"
 )
 
-// Config holds command-line arguments.
-type Config struct {
-	Source   string
-	Language string
-	Output   string
-	Verbose  bool
-	Model    string
-	NoSave   bool
-}
-
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
+	app := &cli.App{
+		Name:  "explain",
+		Usage: "Explain code and save the explanation as a markdown file",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "Show verbose agent output",
+			},
+			&cli.StringFlag{
+				Name:    "model",
+				Aliases: []string{"m"},
+				Value:   "openai/gpt-5.2",
+				Usage:   "Model to use",
+			},
+			&cli.StringFlag{
+				Name:    "language",
+				Aliases: []string{"l", "lang"},
+				Usage:   "Programming language (auto-detected if omitted)",
+			},
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "Output file path (prompts if omitted)",
+			},
+			&cli.BoolFlag{
+				Name:  "no-save",
+				Usage: "Print to stdout instead of saving",
+			},
+		},
+		ArgsUsage: "[source]",
+		UsageText: `explain [options] [source]
 
-	if err := run(ctx); err != nil {
+   source can be:
+   - File path (e.g., main.go)
+   - Directory path (e.g., ./internal/agent/)
+   - '-' or omitted for stdin
+
+EXAMPLES:
+   explain main.go
+   explain ./internal/agent/
+   pbpaste | explain
+   explain main.go -o explanation.md
+   cat complex.go | explain --lang go --no-save`,
+		Action: func(c *cli.Context) error {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			return run(ctx, c)
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context) error {
-	config := parseArgs(os.Args[1:])
-
+func run(ctx context.Context, c *cli.Context) error {
 	fmt.Println("== Code Explainer ==")
 
+	// Get flag values
+	verbose := c.Bool("verbose")
+	model := c.String("model")
+	language := c.String("language")
+	output := c.String("output")
+	noSave := c.Bool("no-save")
+
+	// Get source from args (first positional argument)
+	source := c.Args().First()
+
 	// Get code input
-	code, sourceName, err := getCodeInput(config.Source)
+	code, sourceName, err := getCodeInput(source)
 	if err != nil {
 		return fmt.Errorf("get code input: %w", err)
 	}
@@ -50,17 +98,17 @@ func run(ctx context.Context) error {
 	}
 
 	// Auto-detect language if not specified
-	if config.Language == "" {
-		config.Language = detectLanguage(config.Source, code)
+	if language == "" {
+		language = detectLanguage(source, code)
 	}
 
 	// Build prompt
-	prompt := buildExplanationPrompt(code, config.Language)
+	prompt := buildExplanationPrompt(code, language)
 
 	// Generate explanation
 	fmt.Fprintln(os.Stderr, "Generating explanation...")
-	agentRunner := agent.New(config.Verbose)
-	explanation, err := agentRunner.Run(ctx, config.Model, prompt)
+	agentRunner := agent.New(verbose)
+	explanation, err := agentRunner.Run(ctx, model, prompt)
 	if err != nil {
 		return fmt.Errorf("generate explanation: %w", err)
 	}
@@ -68,15 +116,15 @@ func run(ctx context.Context) error {
 	explanation = strings.TrimSpace(explanation)
 
 	// Print to stdout if --no-save
-	if config.NoSave {
+	if noSave {
 		fmt.Println(explanation)
 		return nil
 	}
 
 	// Determine output path
-	outputPath := config.Output
+	outputPath := output
 	if outputPath == "" {
-		outputPath, err = getOutputPath(suggestFilename(sourceName, config.Language))
+		outputPath, err = getOutputPath(suggestFilename(sourceName, language))
 		if err != nil {
 			return fmt.Errorf("get output path: %w", err)
 		}
@@ -90,75 +138,6 @@ func run(ctx context.Context) error {
 
 	fmt.Printf("Saved to: %s\n", finalPath)
 	return nil
-}
-
-func parseArgs(args []string) Config {
-	config := Config{
-		Model:   "openai/gpt-5.2",
-		Verbose: false,
-		NoSave:  false,
-	}
-
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-
-		switch arg {
-		case "-v", "--verbose":
-			config.Verbose = true
-		case "-m", "--model":
-			if i+1 < len(args) {
-				config.Model = args[i+1]
-				i++
-			}
-		case "-l", "--language", "--lang":
-			if i+1 < len(args) {
-				config.Language = args[i+1]
-				i++
-			}
-		case "-o", "--output":
-			if i+1 < len(args) {
-				config.Output = args[i+1]
-				i++
-			}
-		case "--no-save":
-			config.NoSave = true
-		case "-h", "--help":
-			printHelp()
-			os.Exit(0)
-		default:
-			// First non-flag argument is the source
-			if config.Source == "" {
-				config.Source = arg
-			}
-		}
-	}
-
-	return config
-}
-
-func printHelp() {
-	fmt.Println("Usage: explain [options] [source]")
-	fmt.Println()
-	fmt.Println("Explain code and save the explanation as a markdown file.")
-	fmt.Println()
-	fmt.Println("Options:")
-	fmt.Println("  -v, --verbose           Show verbose agent output")
-	fmt.Println("  -m, --model STR         Model to use (default: openai/gpt-5.2)")
-	fmt.Println("  -l, --lang STR          Programming language (auto-detected if omitted)")
-	fmt.Println("  -o, --output PATH       Output file path (prompts if omitted)")
-	fmt.Println("  --no-save               Print to stdout instead of saving")
-	fmt.Println("  -h, --help              Show this help")
-	fmt.Println()
-	fmt.Println("Arguments:")
-	fmt.Println("  source                  File, directory, or '-' for stdin")
-	fmt.Println("                          If omitted, reads from stdin")
-	fmt.Println()
-	fmt.Println("Examples:")
-	fmt.Println("  explain main.go")
-	fmt.Println("  explain ./internal/agent/")
-	fmt.Println("  pbpaste | explain")
-	fmt.Println("  explain main.go -o explanation.md")
-	fmt.Println("  cat complex.go | explain --lang go --no-save")
 }
 
 func getCodeInput(source string) (code, sourceName string, err error) {
