@@ -64,22 +64,32 @@ build-explain:
 
 # Install all commands
 install-all: build-all
-	cp -f "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
-	cp -f "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
-	cp -f "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/tutor"
+	rm -f "$(INSTALL_DIR)/gitmessage"
+	rm -f "$(INSTALL_DIR)/explain"
+	cp "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
+	cp "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
+	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
 
 # Alias for install-all
 install: install-all
 
 # Install individual commands
 install-tutor: build-tutor
-	cp -f "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/tutor"
+	cp "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
 
 install-gitmessage: build-gitmessage
-	cp -f "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/gitmessage"
+	cp "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
 
 install-explain: build-explain
-	cp -f "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/explain"
+	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
 
 # Clean all binaries
 clean:
