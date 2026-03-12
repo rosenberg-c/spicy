@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
 	"module/lib/internal/filewriter"
 	"module/lib/internal/generator"
@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	app := &cli.App{
+	cmd := &cli.Command{
 		Name:  "tutor",
 		Usage: "Generate technical tutorials using AI",
 		Flags: []cli.Flag{
@@ -49,39 +49,39 @@ EXAMPLES:
    tutor -v how does grep work
    tutor -m openai/gpt-4 how to use ffmpeg
    tutor --validation-model openai/gpt-4o --generation-model openai/o1 question`,
-		Action: func(c *cli.Context) error {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 			defer cancel()
 
-			return run(ctx, c)
+			return run(runCtx, cmd)
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, c *cli.Context) error {
+func run(ctx context.Context, cmd *cli.Command) error {
 	fmt.Println("== Generate Tutorial ==")
 
-	// Get flag values
-	verbose := c.Bool("verbose")
-	baseModel := c.String("model")
+	// Get flag values from cmd
+	verbose := cmd.Bool("verbose")
+	baseModel := cmd.String("model")
 
 	// Determine validation and generation models
-	validationModel := c.String("validation-model")
+	validationModel := cmd.String("validation-model")
 	if validationModel == "" {
 		validationModel = baseModel
 	}
 
-	generationModel := c.String("generation-model")
+	generationModel := cmd.String("generation-model")
 	if generationModel == "" {
 		generationModel = baseModel
 	}
 
 	// Get question from args
-	question := c.Args().Slice()
+	question := cmd.Args().Slice()
 
 	// Get user input
 	userInput, err := getUserInput(question)

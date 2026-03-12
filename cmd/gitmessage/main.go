@@ -9,13 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
-
-	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	app := &cli.App{
+	cmd := &cli.Command{
 		Name:  "gitmessage",
 		Usage: "Generate commit messages using AI",
 		Flags: []cli.Flag{
@@ -36,30 +35,25 @@ func main() {
 				Usage:   "Model to use",
 			},
 		},
-		Action: func(c *cli.Context) error {
-			ctx, cancel := context.WithTimeout(
-				context.Background(),
-				2*time.Minute,
-			)
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			runCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 			defer cancel()
 
-			return run(ctx, c)
+			return run(runCtx, cmd)
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, c *cli.Context) error {
-	// Get flag values from cli.Context
-	verbose := c.Bool("verbose")
-	model := c.String("model")
-	copy := c.Bool("copy")
-
-	// Get positional arguments
-	prefix := c.Args().First() // First positional arg
+func run(ctx context.Context, cmd *cli.Command) error {
+	// Get flag values from cmd instead of c
+	verbose := cmd.Bool("verbose")
+	model := cmd.String("model")
+	copy := cmd.Bool("copy")
+	prefix := cmd.Args().First()
 
 	// Get staged diff
 	fmt.Fprintln(os.Stderr, "Running: git diff --staged")
@@ -70,7 +64,10 @@ func run(ctx context.Context, c *cli.Context) error {
 
 	// Check if there are staged changes
 	if strings.TrimSpace(diff) == "" {
-		fmt.Fprintln(os.Stderr, "Warning: No staged changes available. Please stage your changes first.")
+		fmt.Fprintln(
+			os.Stderr,
+			"Warning: No staged changes available. Please stage your changes first.",
+		)
 		return nil
 	}
 
@@ -103,7 +100,11 @@ func run(ctx context.Context, c *cli.Context) error {
 	// Optionally copy to clipboard
 	if copy {
 		if err := copyToClipboard(finalMsg); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to copy to clipboard: %v\n", err)
+			fmt.Fprintf(
+				os.Stderr,
+				"Warning: failed to copy to clipboard: %v\n",
+				err,
+			)
 		}
 	}
 
