@@ -5,11 +5,9 @@ import "fmt"
 // BuildValidationPrompt creates a prompt that asks the AI to validate input specificity.
 // Returns a prompt instructing the AI to respond with JSON containing action and reason.
 func BuildValidationPrompt(input string) string {
-	return fmt.Sprintf(`You are a senior technical writer and educator. Analyze the following user request for a tutorial:
-
-"%s"
-
-Determine if this request is specific and clear enough to create a useful tutorial, or if it's too ambiguous and needs clarification.
+	return fmt.Sprintf(`You are a senior technical writer and educator.
+Determine if this request is specific and clear enough to create a useful tutorial, 
+or if it's too ambiguous and needs clarification.
 
 Respond ONLY with a valid JSON object (no markdown, no extra text) in this exact format:
 
@@ -41,5 +39,8 @@ Examples of decisions:
 - "docker" -> too vague, suggest: "docker basics", "docker compose", "dockerfile best practices", etc.
 - "echo command" -> specific enough, continue, suggest: "echo-command-guide.md"
 
-Think carefully about whether the request has enough context and specificity to create a useful, focused tutorial.`, input)
+Think carefully about whether the request has enough context and specificity to create a useful, focused tutorial.
+
+Analyze the following user request for a tutorial:
+"%s"`, input)
 }
