@@ -280,7 +280,8 @@ Include:
 - Any notable design decisions or best practices
 - Potential improvements or considerations (if applicable)
 
-Be thorough but clear. Assume the reader is a developer who wants to understand the code.
+Be thorough but clear.
+Assume the reader is a developer who wants to understand the code.
 
 Code to explain:
 

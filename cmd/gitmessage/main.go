@@ -112,9 +112,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 }
 
 func buildPrompt(diff string) string {
-	return fmt.Sprintf(`You are a senior coder: write a short commit message, one row only.
-Do not include the actual diff, or any other thoughts, only the commit message.
-Always use Capital character at the beginning of the commit message.
+	return fmt.Sprintf(`You are a senior coder.
+Write a short commit message, one row only.
+Do not include the actual diff, or any other thoughts.
+Only output the commit message.
+Always use Capital character at the beginning.
 Do not add any quotes or special characters around the response.
 
 Diff:
