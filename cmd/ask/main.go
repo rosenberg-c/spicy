@@ -17,8 +17,8 @@ import (
 
 func main() {
 	cmd := &cli.Command{
-		Name:  "explain",
-		Usage: "Explain code and save the explanation as a markdown file",
+		Name:  "ask",
+		Usage: "Ask a question and get a concise answer using AI",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "verbose",
@@ -32,9 +32,13 @@ func main() {
 				Usage:   "Model to use",
 			},
 		},
-		ArgsUsage: "[question]",
-		UsageText: `ask [options] [question]
-`,
+		ArgsUsage: "[question...]",
+		UsageText: `ask [options] [question...]
+
+EXAMPLES:
+   ask what is the difference between Go and Rust
+   ask -v how does git rebase work
+   ask -m openai/gpt-4 explain closures in JavaScript`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 			defer cancel()
@@ -49,16 +53,9 @@ func main() {
 }
 
 func run(ctx context.Context, cmd *cli.Command) error {
-	fmt.Println("== Generate Tutorial ==")
-
 	// Get flag values from cmd
 	verbose := cmd.Bool("verbose")
-	baseModel := cmd.String("model")
-
-	generationModel := cmd.String("generation-model")
-	if generationModel == "" {
-		generationModel = baseModel
-	}
+	model := cmd.String("model")
 
 	// Get question from args
 	question := cmd.Args().Slice()
@@ -69,13 +66,13 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("get user input: %w", err)
 	}
 
-	// Create separate agents for validation and generation
-	generationAgent := agent.New(verbose)
+	// Create agent
+	agentRunner := agent.New(verbose)
 
-	// Generate tutorial
-	fmt.Fprintln(os.Stderr, "Generating tutorial...")
+	// Generate answer
+	fmt.Fprintln(os.Stderr, "Generating answer...")
 	prompt := buildPrompt(userInput)
-	content, err := generationAgent.Run(ctx, generationModel, prompt)
+	content, err := agentRunner.Run(ctx, model, prompt)
 	if err != nil {
 		return fmt.Errorf("generation failed: %w", err)
 	}
@@ -84,17 +81,20 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("agent returned empty content")
 	}
 
+	// Print the answer
+	fmt.Println(content)
+
 	return nil
 }
 
 func getUserInput(question []string) (string, error) {
 	if len(question) > 0 {
 		input := strings.Join(question, " ")
-		fmt.Printf("Question: %s\n", input)
 		return input, nil
 	}
 
-	fmt.Print("-- input: ")
+	// Prompt for input
+	fmt.Print("Question: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
