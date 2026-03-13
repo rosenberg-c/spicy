@@ -8,12 +8,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
-	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
 	"module/lib/internal/filewriter"
+
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
@@ -198,14 +200,13 @@ func readDirectory(dir string) (string, error) {
 		// Skip common non-code directories
 		if info.IsDir() {
 			skip := []string{"node_modules", "vendor", "bin", ".git"}
-			for _, s := range skip {
-				if info.Name() == s {
-					return filepath.SkipDir
-				}
+
+			if slices.Contains(skip, info.Name()) {
+				return filepath.SkipDir
 			}
+
 			return nil
 		}
-
 		// Check if it's a code file
 		ext := filepath.Ext(path)
 		if !codeExts[ext] {
@@ -219,13 +220,12 @@ func readDirectory(dir string) (string, error) {
 		}
 
 		relPath, _ := filepath.Rel(dir, path)
-		builder.WriteString(fmt.Sprintf("// File: %s\n", relPath))
+		fmt.Fprintf(&builder, "// File: %s\n", relPath)
 		builder.WriteString(string(content))
 		builder.WriteString("\n\n")
 
 		return nil
 	})
-
 	if err != nil {
 		return "", err
 	}
