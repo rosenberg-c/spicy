@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v3"
+	"module/lib/cmd/tutor/validator"
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
 	"module/lib/internal/filewriter"
-	"module/lib/internal/validator"
 )
 
 func main() {
