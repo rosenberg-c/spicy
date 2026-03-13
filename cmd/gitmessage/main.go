@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
+
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
@@ -18,6 +19,11 @@ func main() {
 		Name:  "gitmessage",
 		Usage: "Generate commit messages using AI",
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "hint",
+				Aliases: []string{"i"},
+				Usage:   "Add hint to the llm",
+			},
 			&cli.BoolFlag{
 				Name:    "verbose",
 				Aliases: []string{"v"},
@@ -53,6 +59,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	verbose := cmd.Bool("verbose")
 	model := cmd.String("model")
 	copy := cmd.Bool("copy")
+	hint := cmd.String("hint")
 	prefix := cmd.Args().First()
 
 	// Get staged diff
@@ -72,7 +79,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Build prompt
-	prompt := buildPrompt(diff)
+	prompt := buildPrompt(hint, diff)
 
 	// Generate commit message
 	fmt.Fprintf(os.Stderr, "Running: opencode run --agent build -m %s\n", model)
@@ -111,7 +118,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func buildPrompt(diff string) string {
+func buildPrompt(diff string, hint string) string {
 	return fmt.Sprintf(`You are a senior coder.
 Write a short commit message, one row only.
 Do not include the actual diff, or any other thoughts.
@@ -119,8 +126,11 @@ Only output the commit message.
 Always use Capital character at the beginning.
 Do not add any quotes or special characters around the response.
 
+Hint:
+%s
+
 Diff:
-%s`, diff)
+%s`, hint, diff)
 }
 
 func getStagedDiff(ctx context.Context) (string, error) {
