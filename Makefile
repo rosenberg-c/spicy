@@ -12,8 +12,8 @@ INSTALL_DIR ?= $(HOME)/.local/bin
 CMDS := tutor gitmessage explain
 
 .PHONY: help fmt vet test check build build-all clean install install-all
-.PHONY: build-tutor build-gitmessage build-explain
-.PHONY: install-tutor install-gitmessage install-explain
+.PHONY: build-tutor build-gitmessage build-explain build-ask
+.PHONY: install-tutor install-gitmessage install-explain install-ask
 
 help:
 	@printf "%s\n" \
@@ -26,10 +26,12 @@ help:
 	"  make build-tutor      - build tutor only" \
 	"  make build-gitmessage - build gitmessage only" \
 	"  make build-explain    - build explain only" \
+	"  make build-ask        - build ask only" \
 	"  make install-all      - install all commands to $(INSTALL_DIR)" \
 	"  make install-tutor    - install tutor only" \
 	"  make install-gitmessage - install gitmessage only" \
 	"  make install-explain  - install explain only" \
+	"  make install-ask      - install ask only" \
 	"  make clean            - remove all built binaries"
 
 fmt:
@@ -44,7 +46,7 @@ test:
 check: vet test
 
 # Build all commands
-build-all: build-tutor build-gitmessage build-explain
+build-all: build-tutor build-gitmessage build-explain build-ask
 
 # Alias for build-all
 build: build-all
@@ -62,15 +64,21 @@ build-explain:
 	@mkdir -p "$(BINDIR)"
 	$(GO) build -o "$(BINDIR)/explain" ./cmd/explain
 
+build-ask:
+	@mkdir -p "$(BINDIR)"
+	$(GO) build -o "$(BINDIR)/ask" ./cmd/ask
+
 # Install all commands
 install-all: build-all
 	@mkdir -p "$(INSTALL_DIR)"
 	rm -f "$(INSTALL_DIR)/tutor"
 	rm -f "$(INSTALL_DIR)/gitmessage"
 	rm -f "$(INSTALL_DIR)/explain"
+	rm -f "$(INSTALL_DIR)/ask"
 	cp "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
 	cp "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
 	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
+	cp "$(BINDIR)/ask" "$(INSTALL_DIR)/ask"
 
 # Alias for install-all
 install: install-all
@@ -90,6 +98,11 @@ install-explain: build-explain
 	@mkdir -p "$(INSTALL_DIR)"
 	rm -f "$(INSTALL_DIR)/explain"
 	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
+
+install-ask: build-ask
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/ask"
+	cp "$(BINDIR)/ask" "$(INSTALL_DIR)/ask"
 
 # Clean all binaries
 clean:
