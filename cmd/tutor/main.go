@@ -12,7 +12,6 @@ import (
 	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
 	"module/lib/internal/filewriter"
-	"module/lib/internal/generator"
 	"module/lib/internal/validator"
 )
 
@@ -121,10 +120,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Generate tutorial
 	fmt.Fprintln(os.Stderr, "Generating tutorial...")
-	gen := generator.New(generationAgent, generationModel)
-	content, err := gen.Generate(ctx, userInput)
+	prompt := buildTutorialPrompt(userInput)
+	content, err := generationAgent.Run(ctx, generationModel, prompt)
 	if err != nil {
 		return fmt.Errorf("generation failed: %w", err)
+	}
+
+	if content == "" {
+		return fmt.Errorf("agent returned empty content")
 	}
 
 	// Write to file
