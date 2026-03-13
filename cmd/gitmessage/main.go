@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"module/lib/internal/agent"
-
 	"github.com/urfave/cli/v3"
+	"module/lib/internal/agent"
+	"module/lib/internal/constants"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "model",
 				Aliases: []string{"m"},
-				Value:   "openai/gpt-5.2-codex",
+				Value:   constants.DefaultModel,
 				Usage:   "Model to use",
 			},
 		},
