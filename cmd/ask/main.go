@@ -11,6 +11,7 @@ import (
 
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
+	"module/lib/internal/history"
 
 	"github.com/urfave/cli/v3"
 )
@@ -31,6 +32,10 @@ func main() {
 				Value:   constants.DefaultModel,
 				Usage:   "Model to use",
 			},
+			&cli.BoolFlag{
+				Name:  "history",
+				Usage: "Save command history to .spicy/ask/",
+			},
 		},
 		ArgsUsage: "[question...]",
 		UsageText: `ask [options] [question...]
@@ -38,7 +43,8 @@ func main() {
 EXAMPLES:
    ask what is the difference between Go and Rust
    ask -v how does git rebase work
-   ask -m openai/gpt-4 explain closures in JavaScript`,
+   ask -m openai/gpt-4 explain closures in JavaScript
+   ask --history what is a goroutine`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 			defer cancel()
@@ -56,6 +62,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Get flag values from cmd
 	verbose := cmd.Bool("verbose")
 	model := cmd.String("model")
+	saveHistory := cmd.Bool("history")
 
 	// Get question from args
 	question := cmd.Args().Slice()
@@ -88,6 +95,18 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Print the answer
 	fmt.Println(content)
+
+	// Save to history if enabled
+	if saveHistory {
+		historyData := map[string]interface{}{
+			"question": userInput,
+			"result":   content,
+		}
+		if err := history.Save("ask", historyData); err != nil {
+			// Log error but don't fail the command
+			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
+		}
+	}
 
 	return nil
 }

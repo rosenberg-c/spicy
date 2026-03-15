@@ -14,6 +14,7 @@ import (
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
 	"module/lib/internal/filewriter"
+	"module/lib/internal/history"
 )
 
 func main() {
@@ -39,6 +40,10 @@ func main() {
 			&cli.StringFlag{
 				Name:  "generation-model",
 				Usage: "Model to use for generation only",
+			},
+			&cli.BoolFlag{
+				Name:  "history",
+				Usage: "Save command history to .spicy/tutor/",
 			},
 		},
 		ArgsUsage: "[question...]",
@@ -68,6 +73,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Get flag values from cmd
 	verbose := cmd.Bool("verbose")
 	baseModel := cmd.String("model")
+	saveHistory := cmd.Bool("history")
 
 	// Determine validation and generation models
 	validationModel := cmd.String("validation-model")
@@ -146,6 +152,19 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	fmt.Printf("Saved to: %s\n", finalPath)
+
+	// Save to history if enabled
+	if saveHistory {
+		historyData := map[string]interface{}{
+			"question": userInput,
+			"output":   finalPath,
+			"result":   content,
+		}
+		if err := history.Save("tutor", historyData); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
+		}
+	}
+
 	return nil
 }
 

@@ -16,6 +16,7 @@ import (
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
 	"module/lib/internal/filewriter"
+	"module/lib/internal/history"
 )
 
 func main() {
@@ -47,6 +48,10 @@ func main() {
 			&cli.BoolFlag{
 				Name:  "no-save",
 				Usage: "Print to stdout instead of saving",
+			},
+			&cli.BoolFlag{
+				Name:  "history",
+				Usage: "Save command history to .spicy/explain/",
 			},
 		},
 		ArgsUsage: "[source]",
@@ -85,6 +90,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	language := cmd.String("language")
 	output := cmd.String("output")
 	noSave := cmd.Bool("no-save")
+	saveHistory := cmd.Bool("history")
 
 	// Get source from args (first positional argument)
 	source := cmd.Args().First()
@@ -125,6 +131,19 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Print to stdout if --no-save
 	if noSave {
 		fmt.Println(explanation)
+
+		// Save to history if enabled
+		if saveHistory {
+			historyData := map[string]interface{}{
+				"source":   sourceName,
+				"language": language,
+				"result":   explanation,
+			}
+			if err := history.Save("explain", historyData); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
+			}
+		}
+
 		return nil
 	}
 
@@ -144,6 +163,20 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	fmt.Printf("Saved to: %s\n", finalPath)
+
+	// Save to history if enabled
+	if saveHistory {
+		historyData := map[string]interface{}{
+			"source":     sourceName,
+			"language":   language,
+			"output":     finalPath,
+			"result":     explanation,
+		}
+		if err := history.Save("explain", historyData); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
+		}
+	}
+
 	return nil
 }
 

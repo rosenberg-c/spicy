@@ -12,6 +12,7 @@ import (
 	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
+	"module/lib/internal/history"
 )
 
 func main() {
@@ -40,6 +41,10 @@ func main() {
 				Value:   constants.DefaultModel,
 				Usage:   "Model to use",
 			},
+			&cli.BoolFlag{
+				Name:  "history",
+				Usage: "Save command history to .spicy/gitmessage/",
+			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
@@ -61,6 +66,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	copy := cmd.Bool("copy")
 	hint := cmd.String("hint")
 	prefix := cmd.Args().First()
+	saveHistory := cmd.Bool("history")
 
 	// Get staged diff
 	fmt.Fprintln(os.Stderr, "Running: git diff --staged")
@@ -117,6 +123,19 @@ func run(ctx context.Context, cmd *cli.Command) error {
 				"Warning: failed to copy to clipboard: %v\n",
 				err,
 			)
+		}
+	}
+
+	// Save to history if enabled
+	if saveHistory {
+		historyData := map[string]interface{}{
+			"hint":   hint,
+			"prefix": prefix,
+			"result": finalMsg,
+		}
+		if err := history.Save("gitmessage", historyData); err != nil {
+			// Log error but don't fail the command
+			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
 		}
 	}
 
