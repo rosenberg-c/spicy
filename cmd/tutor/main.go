@@ -89,6 +89,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("get user input: %w", err)
 	}
 
+	// Validate auth before running
+	if err := agent.ValidateAuth(validationModel); err != nil {
+		return err
+	}
+	if err := agent.ValidateAuth(generationModel); err != nil {
+		return err
+	}
+
 	// Create separate agents for validation and generation
 	validationAgent := agent.New(verbose)
 	generationAgent := agent.New(verbose)

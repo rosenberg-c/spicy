@@ -66,6 +66,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("get user input: %w", err)
 	}
 
+	// Validate auth before running
+	if err := agent.ValidateAuth(model); err != nil {
+		return fmt.Errorf("auth error: %w", err)
+	}
+
 	// Create agent
 	agentRunner := agent.New(verbose)
 

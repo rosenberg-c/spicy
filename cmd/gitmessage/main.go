@@ -78,6 +78,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return nil
 	}
 
+	// Validate auth before running
+	if err := agent.ValidateAuth(model); err != nil {
+		return err
+	}
+
 	// Build prompt
 	prompt := buildPrompt(hint, diff)
 

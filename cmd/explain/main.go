@@ -104,6 +104,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		language = detectLanguage(source, code)
 	}
 
+	// Validate auth before running
+	if err := agent.ValidateAuth(model); err != nil {
+		return err
+	}
+
 	// Build prompt
 	prompt := buildExplanationPrompt(code, language)
 
