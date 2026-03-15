@@ -1,3 +1,4 @@
 # AGENT
 
-read the docs at ./docs/
+Read the docs at ./docs/
+
