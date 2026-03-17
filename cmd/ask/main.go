@@ -119,7 +119,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"question": userInput,
 			"result":   content,
 		}
-		if err := history.Save("ask", historyData); err != nil {
+		// Use first part of question as filename suggestion
+		if err := history.Save("ask", historyData, userInput); err != nil {
 			// Log error but don't fail the command
 			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
 		}

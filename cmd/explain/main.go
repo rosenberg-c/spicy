@@ -144,7 +144,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 				"language": language,
 				"result":   explanation,
 			}
-			if err := history.Save("explain", historyData); err != nil {
+			// Use source name as filename suggestion
+			if err := history.Save("explain", historyData, sourceName); err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
 			}
 		}
@@ -182,12 +183,13 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Save to history if enabled
 	if saveHistory {
 		historyData := map[string]interface{}{
-			"source":     sourceName,
-			"language":   language,
-			"output":     finalPath,
-			"result":     explanation,
+			"source":   sourceName,
+			"language": language,
+			"output":   finalPath,
+			"result":   explanation,
 		}
-		if err := history.Save("explain", historyData); err != nil {
+		// Use source name as filename suggestion
+		if err := history.Save("explain", historyData, sourceName); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
 		}
 	}

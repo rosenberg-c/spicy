@@ -29,7 +29,7 @@ func TestSave(t *testing.T) {
 		"result":   "Go is a programming language",
 	}
 
-	err = Save("ask", data)
+	err = Save("ask", data, "what-is-go")
 	if err != nil {
 		t.Fatalf("Save failed: %v", err)
 	}
@@ -109,7 +109,7 @@ func TestLoad(t *testing.T) {
 		"result":   "test result",
 	}
 
-	err = Save("ask", data)
+	err = Save("ask", data, "test-question")
 	if err != nil {
 		t.Fatalf("Save failed: %v", err)
 	}
@@ -172,13 +172,12 @@ func TestList(t *testing.T) {
 		t.Errorf("Expected empty list, got %d entries", len(entries))
 	}
 
-	// Save multiple history entries
-	// Note: Files are named HHMMSS.json, so we can only save one per second
+	// Save history entry with new format
 	data1 := map[string]interface{}{
 		"question": "question 1",
 		"result":   "result 1",
 	}
-	err = Save("ask", data1)
+	err = Save("ask", data1, "question-1")
 	if err != nil {
 		t.Fatalf("Save failed: %v", err)
 	}
@@ -231,7 +230,7 @@ func TestListAll(t *testing.T) {
 			"test": fmt.Sprintf("data for %s", cmd),
 		}
 
-		err = Save(cmd, data)
+		err = Save(cmd, data, fmt.Sprintf("test-%s", cmd))
 		if err != nil {
 			t.Fatalf("Save failed for %s: %v", cmd, err)
 		}

@@ -160,7 +160,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"output":   finalPath,
 			"result":   content,
 		}
-		if err := history.Save("tutor", historyData); err != nil {
+		// Use question as filename suggestion
+		if err := history.Save("tutor", historyData, userInput); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
 		}
 	}

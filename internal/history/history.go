@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"time"
+
+	"module/lib/internal/filename"
 )
 
 // Entry represents a history entry for a command
@@ -19,8 +21,10 @@ type Entry struct {
 	FilePath  string                 `json:"-"` // Not saved to JSON
 }
 
-// Save writes a history entry to the appropriate directory
-func Save(command string, data map[string]interface{}) error {
+// Save writes a history entry to the appropriate directory.
+// Format: [YearMonthDay]-[hourMinuteSec]_[cmd][_suggestion].json
+// suggestedFilename is optional and will be sanitized if provided.
+func Save(command string, data map[string]interface{}, suggestedFilename string) error {
 	now := time.Now()
 
 	// Create the directory path: .spicy/<command>/
@@ -29,9 +33,20 @@ func Save(command string, data map[string]interface{}) error {
 		return fmt.Errorf("create history directory: %w", err)
 	}
 
-	// Create filename: [hour][minute][second].json
-	filename := fmt.Sprintf("%02d%02d%02d.json", now.Hour(), now.Minute(), now.Second())
-	filePath := filepath.Join(historyDir, filename)
+	// Create filename: YYYYMMDD-HHMMSS_cmd[_suggestion].json
+	dateTime := now.Format("20060102-150405")
+	var fname string
+	if suggestedFilename != "" {
+		sanitized := filename.Sanitize(suggestedFilename)
+		// Truncate if too long
+		if len(sanitized) > 40 {
+			sanitized = sanitized[:40]
+		}
+		fname = fmt.Sprintf("%s_%s_%s.json", dateTime, command, sanitized)
+	} else {
+		fname = fmt.Sprintf("%s_%s.json", dateTime, command)
+	}
+	filePath := filepath.Join(historyDir, fname)
 
 	// Create the entry
 	entry := Entry{

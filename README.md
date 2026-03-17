@@ -34,11 +34,20 @@ cat complex.go | explain -o explanation.md
 ### ✅ history - History Manager
 Browse and export command history to markdown files.
 
+All commands support `--history` flag to save execution history to `.spicy/`
+directory with format: `YYYYMMDD-HHMMSS_cmd_description.json`
+
 ```sh
-history list                           # List all history entries
-history list --command ask             # List history for specific command
-history export                         # Interactive export to markdown
-history export --file .spicy/ask/123.json  # Export specific file
+# Enable history saving
+ask --history "What is Docker?"
+tutor --history "How to use git rebase"
+gitmessage --history
+
+# Browse and export history
+shistory list                          # List all history entries
+shistory list --command ask            # List history for specific command
+shistory export                        # Interactive export to markdown
+shistory export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 ```
 
 ## Installation

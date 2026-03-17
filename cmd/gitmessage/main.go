@@ -133,7 +133,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"prefix": prefix,
 			"result": finalMsg,
 		}
-		if err := history.Save("gitmessage", historyData); err != nil {
+		// Use commit message as filename suggestion
+		if err := history.Save("gitmessage", historyData, finalMsg); err != nil {
 			// Log error but don't fail the command
 			fmt.Fprintf(os.Stderr, "Warning: failed to save history: %v\n", err)
 		}
