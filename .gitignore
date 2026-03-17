@@ -3,7 +3,7 @@ bin
 *.out
 
 # History files from nvim plugin
-history/
+.history/
 
 # Command history
 .spicy/
