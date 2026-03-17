@@ -31,6 +31,16 @@ pbpaste | explain --no-save
 cat complex.go | explain -o explanation.md
 ```
 
+### ✅ history - History Manager
+Browse and export command history to markdown files.
+
+```sh
+history list                           # List all history entries
+history list --command ask             # List history for specific command
+history export                         # Interactive export to markdown
+history export --file .spicy/ask/123.json  # Export specific file
+```
+
 ## Installation
 
 ### Build all tools
@@ -60,9 +70,11 @@ make build-explain
 ```
 spicy/
 ├── cmd/
+│   ├── ask/         # AI question answerer
 │   ├── tutor/       # Tutorial generator
 │   ├── gitmessage/  # Commit message generator
-│   └── explain/     # Code explainer
+│   ├── explain/     # Code explainer
+│   └── history/     # History manager
 ├── internal/
 │   ├── agent/       # OpenCode agent integration
 │   ├── validator/   # Input validation

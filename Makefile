@@ -9,11 +9,12 @@ BINDIR ?= bin
 INSTALL_DIR ?= $(HOME)/.local/bin
 
 # Commands to build
-CMDS := tutor gitmessage explain
+CMDS := tutor gitmessage explain ask history
 
 .PHONY: help fmt vet test check build build-all clean install install-all
-.PHONY: build-tutor build-gitmessage build-explain build-ask
+.PHONY: build-tutor build-gitmessage build-explain build-ask build-history
 .PHONY: install-tutor install-gitmessage install-explain install-ask
+.PHONY: install-history
 
 help:
 	@printf "%s\n" \
@@ -22,16 +23,18 @@ help:
 	"  make vet              - run go vet" \
 	"  make test             - run go test" \
 	"  make check            - run vet + test" \
-	"  make build-all        - build all commands (tutor, gitmessage, explain)" \
+	"  make build-all        - build all commands" \
 	"  make build-tutor      - build tutor only" \
 	"  make build-gitmessage - build gitmessage only" \
 	"  make build-explain    - build explain only" \
 	"  make build-ask        - build ask only" \
+	"  make build-history    - build history only" \
 	"  make install-all      - install all commands to $(INSTALL_DIR)" \
 	"  make install-tutor    - install tutor only" \
 	"  make install-gitmessage - install gitmessage only" \
 	"  make install-explain  - install explain only" \
 	"  make install-ask      - install ask only" \
+	"  make install-history  - install history only" \
 	"  make clean            - remove all built binaries"
 
 fmt:
@@ -46,7 +49,7 @@ test:
 check: vet test
 
 # Build all commands
-build-all: build-tutor build-gitmessage build-explain build-ask
+build-all: build-tutor build-gitmessage build-explain build-ask build-history
 
 # Alias for build-all
 build: build-all
@@ -68,6 +71,10 @@ build-ask:
 	@mkdir -p "$(BINDIR)"
 	$(GO) build -o "$(BINDIR)/ask" ./cmd/ask
 
+build-history:
+	@mkdir -p "$(BINDIR)"
+	$(GO) build -o "$(BINDIR)/shistory" ./cmd/history
+
 # Install all commands
 install-all: build-all
 	@mkdir -p "$(INSTALL_DIR)"
@@ -75,10 +82,12 @@ install-all: build-all
 	rm -f "$(INSTALL_DIR)/gitmessage"
 	rm -f "$(INSTALL_DIR)/explain"
 	rm -f "$(INSTALL_DIR)/ask"
+	rm -f "$(INSTALL_DIR)/shistory"
 	cp "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
 	cp "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
 	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
 	cp "$(BINDIR)/ask" "$(INSTALL_DIR)/ask"
+	cp "$(BINDIR)/shistory" "$(INSTALL_DIR)/shistory"
 
 # Alias for install-all
 install: install-all
@@ -103,6 +112,11 @@ install-ask: build-ask
 	@mkdir -p "$(INSTALL_DIR)"
 	rm -f "$(INSTALL_DIR)/ask"
 	cp "$(BINDIR)/ask" "$(INSTALL_DIR)/ask"
+
+install-history: build-history
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/shistory"
+	cp "$(BINDIR)/shistory" "$(INSTALL_DIR)/shistory"
 
 # Clean all binaries
 clean:
