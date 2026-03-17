@@ -10,10 +10,10 @@ import (
 
 // mockAgentRunner implements Runner for testing
 type mockAgentRunner struct {
-	response string
-	err      error
-	callCount int
-	lastModel string
+	response   string
+	err        error
+	callCount  int
+	lastModel  string
 	lastPrompt string
 }
 

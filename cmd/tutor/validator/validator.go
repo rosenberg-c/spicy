@@ -19,8 +19,8 @@ type Validator struct {
 // New creates a Validator that uses the given agent and model to validate user input.
 func New(agent agent.Runner, model string) *Validator {
 	return &Validator{
-		agent:  agent,
-		model:  model,
+		agent: agent,
+		model: model,
 		logger: slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 			Level: slog.LevelInfo,
 		})),

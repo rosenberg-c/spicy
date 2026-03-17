@@ -160,10 +160,10 @@ func TestValidator_Validate_Errors(t *testing.T) {
 			wantErrType:   ErrMissingField,
 		},
 		{
-			name:       "agent error",
-			input:      "test",
-			agentError: fmt.Errorf("connection failed"),
-			wantErr:    true,
+			name:        "agent error",
+			input:       "test",
+			agentError:  fmt.Errorf("connection failed"),
+			wantErr:     true,
 			errContains: "agent call failed",
 		},
 		{

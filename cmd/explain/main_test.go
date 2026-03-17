@@ -122,7 +122,7 @@ func TestReadDirectory(t *testing.T) {
 			skipFiles: []string{"bin/"},
 		},
 		{
-			name: "empty directory",
+			name:       "empty directory",
 			setupFiles: map[string]string{},
 			wantFiles:  []string{},
 		},
