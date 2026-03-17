@@ -11,6 +11,8 @@ import (
 
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
+	"module/lib/internal/filename"
+	"module/lib/internal/filewriter"
 	"module/lib/internal/history"
 
 	"github.com/urfave/cli/v3"
@@ -35,6 +37,10 @@ func main() {
 			&cli.BoolFlag{
 				Name:  "history",
 				Usage: "Save command history to .spicy/ask/",
+			},
+			&cli.BoolFlag{
+				Name:  "save",
+				Usage: "Save output to timestamped markdown file",
 			},
 		},
 		ArgsUsage: "[question...]",
@@ -63,6 +69,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	verbose := cmd.Bool("verbose")
 	model := cmd.String("model")
 	saveHistory := cmd.Bool("history")
+	saveToFile := cmd.Bool("save")
 
 	// Get question from args
 	question := cmd.Args().Slice()
@@ -95,6 +102,16 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Print the answer
 	fmt.Println(content)
+
+	// Save to file if enabled
+	if saveToFile {
+		outputFilename := filename.GenerateTimestamped("ask", userInput)
+		finalPath, err := filewriter.WriteAtomic(outputFilename, content)
+		if err != nil {
+			return fmt.Errorf("save file: %w", err)
+		}
+		fmt.Fprintf(os.Stderr, "Saved to: %s\n", finalPath)
+	}
 
 	// Save to history if enabled
 	if saveHistory {

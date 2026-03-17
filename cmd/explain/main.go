@@ -53,6 +53,10 @@ func main() {
 				Name:  "history",
 				Usage: "Save command history to .spicy/explain/",
 			},
+			&cli.BoolFlag{
+				Name:  "save",
+				Usage: "Save to timestamped markdown file",
+			},
 		},
 		ArgsUsage: "[source]",
 		UsageText: `explain [options] [source]
@@ -91,6 +95,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	output := cmd.String("output")
 	noSave := cmd.Bool("no-save")
 	saveHistory := cmd.Bool("history")
+	saveToFile := cmd.Bool("save")
 
 	// Get source from args (first positional argument)
 	source := cmd.Args().First()
@@ -150,7 +155,17 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Determine output path
 	outputPath := output
 	if outputPath == "" {
-		outputPath, err = getOutputPath(suggestFilename(sourceName, language))
+		suggested := suggestFilename(sourceName, language)
+
+		// If --save is used, prepend timestamp and command name to the suggestion
+		if saveToFile {
+			suggested = strings.TrimSuffix(suggested, ".md")
+			timestamp := time.Now().Format("2006-01-02_15-04")
+			suggested = fmt.Sprintf("%s_explain_%s.md", timestamp, suggested)
+		}
+
+		// Prompt for filename with the suggestion
+		outputPath, err = getOutputPath(suggested)
 		if err != nil {
 			return fmt.Errorf("get output path: %w", err)
 		}
