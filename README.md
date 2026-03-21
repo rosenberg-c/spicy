@@ -31,6 +31,16 @@ pbpaste | explain --no-save
 cat complex.go | explain -o explanation.md
 ```
 
+### ✅ ctx-edit - Context Editor
+Update a selected code context based on a prompt.
+
+```sh
+ctx-edit -p "rename foo to bar" -c "const foo = 1"
+ctx-edit -p "add error handling" -f main.go --start 12 --end 24
+pbpaste | ctx-edit -p "make this more concise" -c -
+ctx-edit -p "convert to for-range" -f main.go --start 10 --end 18 --write
+```
+
 ### ✅ history - History Manager
 Browse and export command history to markdown files.
 
@@ -83,6 +93,7 @@ spicy/
 │   ├── tutor/       # Tutorial generator
 │   ├── gitmessage/  # Commit message generator
 │   ├── explain/     # Code explainer
+│   ├── ctx-edit/    # Context editor
 │   └── history/     # History manager
 ├── internal/
 │   ├── agent/       # OpenCode agent integration
