@@ -7,11 +7,18 @@ This README covers the CLI only. In the monorepo, it lives in `cli/`.
 ## Tools
 
 ### ✅ tutor - Tutorial Generator
-Generate detailed technical tutorials from questions.
+Generate detailed technical tutorials from questions and print to stdout by default.
 
 ```sh
 tutor how to use docker compose
 tutor -v how does grep work
+tutor --save how does grep work
+```
+
+To keep the previous default (prompt + save), define an alias:
+
+```sh
+alias tutor-save='tutor --save'
 ```
 
 ### ✅ gitmessage - Commit Message Generator
@@ -24,13 +31,20 @@ git commit -m "$(pbpaste)"
 ```
 
 ### ✅ explain - Code Explainer
-Explain code and save explanations as markdown files.
+Explain code and print to stdout by default.
 
 ```sh
 explain main.go
 explain ./internal/agent/
-pbpaste | explain --no-save
+pbpaste | explain
+cat complex.go | explain --save
 cat complex.go | explain -o explanation.md
+```
+
+To keep the previous default (prompt + save), define an alias:
+
+```sh
+alias explain-save='explain --save'
 ```
 
 ### ✅ ctx-edit - Context Editor

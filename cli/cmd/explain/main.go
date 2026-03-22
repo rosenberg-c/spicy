@@ -22,7 +22,7 @@ import (
 func main() {
 	cmd := &cli.Command{
 		Name:  "explain",
-		Usage: "Explain code and save the explanation as a markdown file",
+		Usage: "Explain code and optionally save to a markdown file",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "verbose",
@@ -67,7 +67,7 @@ func main() {
 			},
 			&cli.BoolFlag{
 				Name:  "save",
-				Usage: "Save to timestamped markdown file",
+				Usage: "Save explanation to file (prompts if --output omitted)",
 			},
 		},
 		ArgsUsage: "[source]",
@@ -82,8 +82,9 @@ EXAMPLES:
    explain main.go
    explain ./internal/agent/
    pbpaste | explain
+   explain main.go --save
    explain main.go -o explanation.md
-   cat complex.go | explain --lang go --no-save`,
+   cat complex.go | explain --lang go`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 			defer cancel()
@@ -110,7 +111,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	output := cmd.String("output")
 	noSave := cmd.Bool("no-save")
 	saveHistory := cmd.Bool("history")
-	saveToFile := cmd.Bool("save")
+	saveFlag := cmd.Bool("save")
+	saveRequested := (saveFlag || output != "") && !noSave
 
 	// Get source from args (first positional argument)
 	source := cmd.Args().First()
@@ -154,8 +156,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	explanation = strings.TrimSpace(explanation)
 	explanation = sanitizeExplanation(explanation, snippet)
 
-	// Print to stdout if --no-save
-	if noSave {
+	// Print to stdout if not saving
+	if !saveRequested {
 		fmt.Println(explanation)
 
 		// Save to history if enabled
@@ -170,8 +172,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 					"model":        model,
 					"verbose":      verbose,
 					"output":       output,
-					"no_save":      noSave,
-					"save":         saveToFile,
+					"no_save":      true,
+					"save":         false,
 					"history":      saveHistory,
 					"source":       source,
 					"language":     cmd.String("language"),
@@ -195,7 +197,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		suggested := suggestFilename(sourceName, language)
 
 		// If --save is used, prepend timestamp and command name to the suggestion
-		if saveToFile {
+		if saveFlag {
 			suggested = strings.TrimSuffix(suggested, ".md")
 			timestamp := time.Now().Format("2006-01-02_15-04")
 			suggested = fmt.Sprintf("%s_explain_%s.md", timestamp, suggested)
@@ -229,8 +231,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 				"model":        model,
 				"verbose":      verbose,
 				"output":       output,
-				"no_save":      noSave,
-				"save":         saveToFile,
+				"no_save":      false,
+				"save":         true,
 				"history":      saveHistory,
 				"source":       source,
 				"language":     cmd.String("language"),

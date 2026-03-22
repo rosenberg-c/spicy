@@ -45,6 +45,15 @@ func main() {
 				Name:  "history",
 				Usage: "Save command history to .spicy/tutor/",
 			},
+			&cli.BoolFlag{
+				Name:  "save",
+				Usage: "Save tutorial to file (prompts if --output omitted)",
+			},
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "Output file path",
+			},
 		},
 		ArgsUsage: "[question...]",
 		UsageText: `tutor [options] [question...]
@@ -53,6 +62,7 @@ EXAMPLES:
    tutor how to use docker compose
    tutor -v how does grep work
    tutor -m openai/gpt-4 how to use ffmpeg
+   tutor --save how does grep work
    tutor --validation-model openai/gpt-4o --generation-model openai/o1 question`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
@@ -74,6 +84,9 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	verbose := cmd.Bool("verbose")
 	baseModel := cmd.String("model")
 	saveHistory := cmd.Bool("history")
+	saveFlag := cmd.Bool("save")
+	output := cmd.String("output")
+	saveRequested := saveFlag || output != ""
 
 	// Determine validation and generation models
 	validationModel := cmd.String("validation-model")
@@ -127,10 +140,13 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return nil // Exit gracefully
 	}
 
-	// Ask for output path
-	outputPath, err := getOutputPath(validationResult.SuggestedFilename)
-	if err != nil {
-		return fmt.Errorf("get output path: %w", err)
+	// Ask for output path if saving
+	outputPath := output
+	if saveRequested && outputPath == "" {
+		outputPath, err = getOutputPath(validationResult.SuggestedFilename)
+		if err != nil {
+			return fmt.Errorf("get output path: %w", err)
+		}
 	}
 
 	// Generate tutorial
@@ -145,19 +161,23 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("agent returned empty content")
 	}
 
-	// Write to file
-	finalPath, err := filewriter.WriteAtomic(outputPath, content)
-	if err != nil {
-		return fmt.Errorf("write file: %w", err)
-	}
+	var finalPath string
+	if saveRequested {
+		// Write to file
+		finalPath, err = filewriter.WriteAtomic(outputPath, content)
+		if err != nil {
+			return fmt.Errorf("write file: %w", err)
+		}
 
-	fmt.Printf("Saved to: %s\n", finalPath)
+		fmt.Printf("Saved to: %s\n", finalPath)
+	} else {
+		fmt.Println(content)
+	}
 
 	// Save to history if enabled
 	if saveHistory {
 		historyData := map[string]interface{}{
 			"question": userInput,
-			"output":   finalPath,
 			"result":   content,
 			"params": map[string]interface{}{
 				"model":            baseModel,
@@ -165,7 +185,12 @@ func run(ctx context.Context, cmd *cli.Command) error {
 				"generation_model": generationModel,
 				"verbose":          verbose,
 				"history":          saveHistory,
+				"save":             saveRequested,
+				"output":           output,
 			},
+		}
+		if saveRequested {
+			historyData["output"] = finalPath
 		}
 		// Use question as filename suggestion
 		if err := history.Save("tutor", historyData, userInput); err != nil {
