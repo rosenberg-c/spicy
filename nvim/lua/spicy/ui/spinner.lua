@@ -7,13 +7,21 @@ local M = {}
 local active_spinners = {}
 local spinner_id_counter = 0
 
--- Spinner frames
-local SPINNER_FRAMES = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+local constants = require("spicy.constants")
+
+local function resolve_frames(style)
+  if style == "slash" then
+    return constants.spinner_frames_slash
+  end
+
+  return constants.spinner_frames_braille
+end
 
 --- Start a spinner
 --- @param message string Message to display
 --- @param opts table|nil Options:
 ---   - position: string Position (statusline, float, cmdline)
+---   - style: string Spinner style (braille, slash)
 --- @return number spinner_id
 function M.start(message, opts)
   opts = opts or {}
@@ -21,12 +29,14 @@ function M.start(message, opts)
   spinner_id_counter = spinner_id_counter + 1
   local id = spinner_id_counter
 
+  local frames = resolve_frames(opts.style)
   local spinner = {
     id = id,
     message = message or "Loading...",
     frame = 1,
     position = opts.position or "cmdline",
     timer = nil,
+    frames = frames,
   }
 
   -- Start animation timer
@@ -40,8 +50,8 @@ function M.start(message, opts)
       end
 
       -- Update frame
-      spinner.frame = (spinner.frame % #SPINNER_FRAMES) + 1
-      local frame = SPINNER_FRAMES[spinner.frame]
+      spinner.frame = (spinner.frame % #spinner.frames) + 1
+      local frame = spinner.frames[spinner.frame]
 
       -- Display based on position
       if spinner.position == "cmdline" then

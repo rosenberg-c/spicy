@@ -1,7 +1,7 @@
 -- Inline spinner for buffer ranges
 local M = {}
 
-local INLINE_SPINNER_FRAMES = { "-", "\\", "|", "/" }
+local constants = require("spicy.constants")
 local inline_spinner_ns = vim.api.nvim_create_namespace("spicy.inline_spinner")
 
 --- Start an inline spinner over a line range
@@ -9,16 +9,21 @@ local inline_spinner_ns = vim.api.nvim_create_namespace("spicy.inline_spinner")
 --- @param start_line number
 --- @param end_line number
 --- @param message string|nil
+--- @param opts table|nil Options:
+---   - style: string Spinner style (braille, slash)
 --- @return table spinner handle
-function M.start(bufnr, start_line, end_line, message)
+function M.start(bufnr, start_line, end_line, message, opts)
+  opts = opts or {}
   local frame = 1
+  local frames = opts.style == "slash" and constants.spinner_frames_slash
+    or constants.spinner_frames_braille
   local timer = vim.loop.new_timer()
   local top_line = math.max(start_line - 1, 0)
   local bottom_line = math.max(end_line - 1, 0)
   local text_message = message or "Updating selection..."
 
   local function render()
-    local glyph = INLINE_SPINNER_FRAMES[frame]
+    local glyph = frames[frame]
     local text = glyph .. " " .. text_message
     local opts = {
       virt_text = { { text, "Comment" } },
@@ -42,7 +47,7 @@ function M.start(bufnr, start_line, end_line, message)
   end
 
   local function tick()
-    frame = (frame % #INLINE_SPINNER_FRAMES) + 1
+    frame = (frame % #frames) + 1
     vim.api.nvim_buf_clear_namespace(bufnr, inline_spinner_ns, 0, -1)
     render()
   end
