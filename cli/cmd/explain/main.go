@@ -112,7 +112,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	noSave := cmd.Bool("no-save")
 	saveHistory := cmd.Bool("history")
 	saveFlag := cmd.Bool("save")
-	saveRequested := (saveFlag || output != "") && !noSave
+	saveRequested := shouldSave(output, saveFlag, noSave)
 
 	// Get source from args (first positional argument)
 	source := cmd.Args().First()
@@ -248,6 +248,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	return nil
+}
+
+func shouldSave(output string, saveFlag bool, noSave bool) bool {
+	if noSave {
+		return false
+	}
+
+	return saveFlag || output != ""
 }
 
 func getCodeInput(source string) (code, sourceName string, err error) {

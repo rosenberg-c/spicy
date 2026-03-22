@@ -86,7 +86,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	saveHistory := cmd.Bool("history")
 	saveFlag := cmd.Bool("save")
 	output := cmd.String("output")
-	saveRequested := saveFlag || output != ""
+	saveRequested := shouldSave(output, saveFlag)
 
 	// Determine validation and generation models
 	validationModel := cmd.String("validation-model")
@@ -199,6 +199,10 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	return nil
+}
+
+func shouldSave(output string, saveFlag bool) bool {
+	return saveFlag || output != ""
 }
 
 func getUserInput(question []string) (string, error) {
