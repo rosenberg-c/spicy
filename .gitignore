@@ -2,8 +2,5 @@ tmp
 bin
 *.out
 
-# History files from nvim plugin
 .history/
-
-# Command history
 .spicy/
