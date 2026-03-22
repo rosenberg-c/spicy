@@ -4,14 +4,13 @@
 
 local M = {}
 
-local job = require("spicy.utils.job")
 local config = require("spicy.config")
-local float = require("spicy.ui.float")
 local input_ui = require("spicy.ui.input")
-local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
 local fs = require("spicy.utils.fs")
 local cli = require("spicy.utils.cli")
+local runner = require("spicy.utils.runner")
+local output = require("spicy.ui.output")
 
 --- Build the spicy tutor command
 --- @param topic string The tutorial topic
@@ -39,32 +38,11 @@ function M.execute(topic, opts, callback)
   -- Build command
   local cmd, args = build_command(topic, opts)
 
-  -- Check if command exists
-  if not job.command_exists(cmd) then
-    local err = ("Command not found: %s"):format(cmd)
-    helpers.error(err)
-    if callback then
-      callback(nil, err)
-    end
-    return
-  end
-
-  -- Debug output
-  if config.get("verbose") then
-    helpers.info(("Running: %s %s"):format(cmd, table.concat(args, " ")))
-  end
-
-  -- Start spinner
-  local spinner_id = spinner.start("Generating tutorial...")
-
   -- Run command
-  job.run(cmd, args, {
+  runner.run(cmd, args, {
     timeout = opts.timeout or config.get("timeout"),
+    spinner_message = "Generating tutorial...",
     on_exit = function(stdout, stderr, code)
-      -- Stop spinner
-      if spinner_id then
-        spinner.stop(spinner_id)
-      end
 
       -- Check for errors
       if code ~= 0 then
@@ -121,16 +99,7 @@ function M.execute(topic, opts, callback)
         end
 
         -- Display in buffer
-        local bufnr = helpers.create_scratch_buffer()
-        vim.api.nvim_buf_set_lines(
-          bufnr,
-          0,
-          -1,
-          false,
-          vim.split(content, "\n", { plain = true })
-        )
-        vim.bo[bufnr].filetype = "markdown"
-        vim.cmd("buffer " .. bufnr)
+        output.show_markdown_buffer(content)
 
         if callback then
           callback(content, nil)

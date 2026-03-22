@@ -4,13 +4,12 @@
 
 local M = {}
 
-local job = require("spicy.utils.job")
 local config = require("spicy.config")
 local float = require("spicy.ui.float")
 local input_ui = require("spicy.ui.input")
-local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
 local cli = require("spicy.utils.cli")
+local runner = require("spicy.utils.runner")
 
 --- Build the spicy ask command
 --- @param question string The question to ask
@@ -91,51 +90,16 @@ function M.execute(question, opts, callback)
   -- Build command
   local cmd, args = build_command(question, opts)
 
-  -- Debug: Show what we're running (only if verbose)
-  if config.get("verbose") then
-    local cmd_str = cmd .. " " .. table.concat(args, " ")
-    helpers.info("Running: " .. cmd_str)
-  end
-
-  -- Check if command exists
-  if not job.command_exists(cmd) then
-    local err = ("Command not found: %s"):format(cmd)
-    helpers.error(err)
-    if callback then
-      callback(nil, err)
-    end
-    return
-  end
-
-  -- Start spinner
   local show_spinner = config.get("ui.ask.show_spinner")
-  local spinner_id = nil
+  local spinner_message = nil
   if show_spinner then
-    spinner_id = spinner.start("Asking question...")
+    spinner_message = "Asking question..."
   end
 
-  -- Run command
-  local stdout_lines = {}
-  local stderr_lines = {}
-
-  job.run(cmd, args, {
+  runner.run(cmd, args, {
     timeout = opts.timeout or config.get("timeout"),
-    on_stdout = function(_, data)
-      if data then
-        table.insert(stdout_lines, data)
-      end
-    end,
-    on_stderr = function(_, data)
-      if data then
-        table.insert(stderr_lines, data)
-      end
-    end,
+    spinner_message = spinner_message,
     on_exit = function(stdout, stderr, code)
-      -- Stop spinner
-      if spinner_id then
-        spinner.stop(spinner_id)
-      end
-
       -- Rule #5: Propagate errors with context
       if code ~= 0 then
         local err_msg = table.concat(stderr, "\n")
@@ -186,9 +150,6 @@ function M.execute(question, opts, callback)
       end)
     end,
     on_timeout = function()
-      if spinner_id then
-        spinner.stop(spinner_id)
-      end
       helpers.error("Ask command timed out")
       if callback then
         callback(nil, "timeout")

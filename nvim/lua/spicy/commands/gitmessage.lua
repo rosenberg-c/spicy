@@ -4,13 +4,12 @@
 
 local M = {}
 
-local job = require("spicy.utils.job")
 local config = require("spicy.config")
 local float = require("spicy.ui.float")
 local input_ui = require("spicy.ui.input")
-local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
 local cli = require("spicy.utils.cli")
+local runner = require("spicy.utils.runner")
 
 --- Build the spicy gitmessage command
 --- @param opts table|nil Options (model, verbose, hint, prefix)
@@ -48,32 +47,11 @@ function M.execute(opts, callback)
   -- Build command
   local cmd, args = build_command(opts)
 
-  -- Check if command exists
-  if not job.command_exists(cmd) then
-    local err = ("Command not found: %s"):format(cmd)
-    helpers.error(err)
-    if callback then
-      callback(nil, err)
-    end
-    return
-  end
-
-  -- Debug output
-  if config.get("verbose") then
-    helpers.info(("Running: %s %s"):format(cmd, table.concat(args, " ")))
-  end
-
-  -- Start spinner
-  local spinner_id = spinner.start("Generating commit message...")
-
   -- Run command
-  job.run(cmd, args, {
+  runner.run(cmd, args, {
     timeout = opts.timeout or config.get("timeout"),
+    spinner_message = "Generating commit message...",
     on_exit = function(stdout, stderr, code)
-      -- Stop spinner
-      if spinner_id then
-        spinner.stop(spinner_id)
-      end
 
       -- Check for errors
       if code ~= 0 then

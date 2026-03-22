@@ -4,13 +4,12 @@
 
 local M = {}
 
-local job = require("spicy.utils.job")
 local config = require("spicy.config")
-local float = require("spicy.ui.float")
-local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
 local fs = require("spicy.utils.fs")
 local cli = require("spicy.utils.cli")
+local runner = require("spicy.utils.runner")
+local output = require("spicy.ui.output")
 
 --- Build the spicy explain command
 --- @param code string The code to explain
@@ -65,31 +64,10 @@ function M.execute(code, opts, callback)
   -- Build command (stdin will be used for code)
   local cmd, args, stdin_data = build_command(code, opts)
 
-  -- Check if command exists
-  if not job.command_exists(cmd) then
-    local err = ("Command not found: %s"):format(cmd)
-    helpers.error(err)
-    if callback then
-      callback(nil, err)
-    end
-    return
-  end
-
-  -- Debug output
-  if config.get("verbose") then
-    helpers.info(("Running: %s %s"):format(cmd, table.concat(args, " ")))
-  end
-
-  -- Start spinner
-  local spinner_id = spinner.start("Generating explanation...")
-
   -- Write code to temp file (explain command expects file or stdin)
   local tmp_file = vim.fn.tempname() .. ".txt"
   local write_ok, write_err = fs.write_file(tmp_file, stdin_data)
   if not write_ok then
-    if spinner_id then
-      spinner.stop(spinner_id)
-    end
     helpers.error("Failed to create temp file: " .. write_err)
     return
   end
@@ -98,18 +76,14 @@ function M.execute(code, opts, callback)
   table.insert(args, tmp_file)
 
   -- Run command
-  job.run(cmd, args, {
+  runner.run(cmd, args, {
     timeout = opts.timeout or config.get("timeout"),
+    spinner_message = "Generating explanation...",
     on_exit = function(stdout, stderr, code_exit)
       -- Cleanup temp files
       vim.loop.fs_unlink(tmp_file)
       if context_tmp_file then
         vim.loop.fs_unlink(context_tmp_file)
-      end
-
-      -- Stop spinner
-      if spinner_id then
-        spinner.stop(spinner_id)
       end
 
       -- Check for errors
@@ -171,16 +145,7 @@ function M.execute(code, opts, callback)
         end
 
         -- Display in buffer
-        local bufnr = helpers.create_scratch_buffer()
-        vim.api.nvim_buf_set_lines(
-          bufnr,
-          0,
-          -1,
-          false,
-          vim.split(explanation, "\n", { plain = true })
-        )
-        vim.bo[bufnr].filetype = "markdown"
-        vim.cmd("buffer " .. bufnr)
+        output.show_markdown_buffer(explanation)
 
         if callback then
           callback(explanation, nil)
