@@ -14,6 +14,7 @@ import (
 	"module/lib/internal/filename"
 	"module/lib/internal/filewriter"
 	"module/lib/internal/history"
+	"module/lib/internal/params"
 
 	"github.com/urfave/cli/v3"
 )
@@ -115,15 +116,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Save to history if enabled
 	if saveHistory {
+		paramsMap := params.Base(model, verbose, saveHistory, saveToFile, "")
 		historyData := map[string]interface{}{
 			"question": userInput,
 			"result":   content,
-			"params": map[string]interface{}{
-				"model":   model,
-				"verbose": verbose,
-				"save":    saveToFile,
-				"history": saveHistory,
-			},
+			"params":   paramsMap,
 		}
 		// Use first part of question as filename suggestion
 		if err := history.Save("ask", historyData, userInput); err != nil {

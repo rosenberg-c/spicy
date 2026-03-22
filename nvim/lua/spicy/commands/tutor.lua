@@ -11,6 +11,7 @@ local input_ui = require("spicy.ui.input")
 local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
 local fs = require("spicy.utils.fs")
+local cli = require("spicy.utils.cli")
 
 --- Build the spicy tutor command
 --- @param topic string The tutorial topic
@@ -20,23 +21,7 @@ local function build_command(topic, opts)
   opts = opts or {}
 
   local bin = config.get("bin.tutor") or "tutor"
-  local args = {}
-
-  -- Add model flag
-  local model = opts.model or config.get("models.tutor")
-  if model then
-    table.insert(args, "-m")
-    table.insert(args, model)
-  end
-
-  -- Add verbose flag
-  local verbose = opts.verbose or config.get("verbose")
-  if verbose then
-    table.insert(args, "-v")
-  end
-
-  -- Add history flag
-  table.insert(args, "--history")
+  local args = cli.base_args("tutor", opts, true)
 
   -- Add topic
   table.insert(args, topic)

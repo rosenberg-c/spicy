@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -14,9 +13,11 @@ import (
 
 	"github.com/urfave/cli/v3"
 	"module/lib/internal/agent"
+	"module/lib/internal/cliutil"
 	"module/lib/internal/constants"
 	"module/lib/internal/filewriter"
 	"module/lib/internal/history"
+	"module/lib/internal/params"
 )
 
 func main() {
@@ -107,7 +108,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	output := cmd.String("output")
 	saveHistory := cmd.Bool("history")
 	saveFlag := cmd.Bool("save")
-	saveRequested := shouldSave(output, saveFlag)
+	saveRequested := cliutil.ShouldSave(output, saveFlag)
 
 	// Get source from args (first positional argument)
 	source := cmd.Args().First()
@@ -157,24 +158,20 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 		// Save to history if enabled
 		if saveHistory {
+			paramsMap := params.Base(model, verbose, saveHistory, false, output)
+			paramsMap["source"] = source
+			paramsMap["language"] = cmd.String("language")
+			paramsMap["snippet"] = snippet
+			paramsMap["context"] = contextInput
+			paramsMap["context_file"] = contextFile
+
 			historyData := map[string]interface{}{
 				"source":   sourceName,
 				"code":     code,
 				"language": language,
 				"result":   explanation,
 				"context":  contextContent,
-				"params": map[string]interface{}{
-					"model":        model,
-					"verbose":      verbose,
-					"output":       output,
-					"save":         false,
-					"history":      saveHistory,
-					"source":       source,
-					"language":     cmd.String("language"),
-					"snippet":      snippet,
-					"context":      contextInput,
-					"context_file": contextFile,
-				},
+				"params":   paramsMap,
 			}
 			// Use source name as filename suggestion
 			if err := history.Save("explain", historyData, sourceName); err != nil {
@@ -198,7 +195,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		// Prompt for filename with the suggestion
-		outputPath, err = getOutputPath(suggested)
+		outputPath, err = cliutil.PromptOutputPath(suggested)
 		if err != nil {
 			return fmt.Errorf("get output path: %w", err)
 		}
@@ -214,6 +211,13 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Save to history if enabled
 	if saveHistory {
+		paramsMap := params.Base(model, verbose, saveHistory, true, output)
+		paramsMap["source"] = source
+		paramsMap["language"] = cmd.String("language")
+		paramsMap["snippet"] = snippet
+		paramsMap["context"] = contextInput
+		paramsMap["context_file"] = contextFile
+
 		historyData := map[string]interface{}{
 			"source":   sourceName,
 			"code":     code,
@@ -221,18 +225,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"output":   finalPath,
 			"result":   explanation,
 			"context":  contextContent,
-			"params": map[string]interface{}{
-				"model":        model,
-				"verbose":      verbose,
-				"output":       output,
-				"save":         true,
-				"history":      saveHistory,
-				"source":       source,
-				"language":     cmd.String("language"),
-				"snippet":      snippet,
-				"context":      contextInput,
-				"context_file": contextFile,
-			},
+			"params":   paramsMap,
 		}
 		// Use source name as filename suggestion
 		if err := history.Save("explain", historyData, sourceName); err != nil {
@@ -241,10 +234,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	return nil
-}
-
-func shouldSave(output string, saveFlag bool) bool {
-	return saveFlag || output != ""
 }
 
 func getCodeInput(source string) (code, sourceName string, err error) {
@@ -478,31 +467,4 @@ func suggestFilename(sourceName, language string) string {
 	// Remove extension and add -explanation
 	name := strings.TrimSuffix(sourceName, filepath.Ext(sourceName))
 	return fmt.Sprintf("%s-explanation.md", name)
-}
-
-func getOutputPath(suggestedFilename string) (string, error) {
-	fmt.Printf("Save to file (default: %s) => ", suggestedFilename)
-
-	// Open /dev/tty to read from terminal instead of stdin
-	// This allows reading user input even when stdin is piped
-	tty, err := os.Open("/dev/tty")
-	if err != nil {
-		// If /dev/tty is not available (non-interactive), use default
-		fmt.Fprintln(os.Stderr, "\nNo terminal available, using default filename")
-		return suggestedFilename, nil
-	}
-	defer tty.Close()
-
-	reader := bufio.NewReader(tty)
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return suggestedFilename, nil
-	}
-
-	return input, nil
 }

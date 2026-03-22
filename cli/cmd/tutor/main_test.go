@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"module/lib/internal/cliutil"
 )
 
 func TestGetUserInput(t *testing.T) {
@@ -152,8 +154,9 @@ func TestBuildTutorialPrompt_Format(t *testing.T) {
 	}
 }
 
-func TestGetOutputPath_Default(t *testing.T) {
+func TestPromptOutputPath_Default(t *testing.T) {
 	// This function reads from /dev/tty which is not available in tests
 	// We can only test the fallback behavior
 	t.Skip("Skipping /dev/tty test in automated testing")
+	_, _ = cliutil.PromptOutputPath("tutorial.md")
 }

@@ -8,6 +8,7 @@ local job = require("spicy.utils.job")
 local config = require("spicy.config")
 local input_ui = require("spicy.ui.input")
 local helpers = require("spicy.utils.helpers")
+local cli = require("spicy.utils.cli")
 
 local INLINE_SPINNER_FRAMES = { "-", "\\", "|", "/" }
 local inline_spinner_ns = vim.api.nvim_create_namespace("spicy.ctx_edit")
@@ -21,20 +22,7 @@ local function build_command(prompt, context, opts)
   opts = opts or {}
 
   local bin = config.get("bin.ctx_edit") or "ctx-edit"
-  local args = {}
-
-  -- Add model flag
-  local model = opts.model or config.get("models.ctx_edit")
-  if model then
-    table.insert(args, "-m")
-    table.insert(args, model)
-  end
-
-  -- Add verbose flag
-  local verbose = opts.verbose or config.get("verbose")
-  if verbose then
-    table.insert(args, "-v")
-  end
+  local args = cli.base_args("ctx_edit", opts, false)
 
   -- JSON output for reliable parsing
   table.insert(args, "--json")

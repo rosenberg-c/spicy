@@ -10,6 +10,7 @@ local float = require("spicy.ui.float")
 local input_ui = require("spicy.ui.input")
 local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
+local cli = require("spicy.utils.cli")
 
 --- Build the spicy gitmessage command
 --- @param opts table|nil Options (model, verbose, hint, prefix)
@@ -18,28 +19,12 @@ local function build_command(opts)
   opts = opts or {}
 
   local bin = config.get("bin.gitmessage") or "gitmessage"
-  local args = {}
-
-  -- Add model flag
-  local model = opts.model or config.get("models.gitmessage")
-  if model then
-    table.insert(args, "-m")
-    table.insert(args, model)
-  end
-
-  -- Add verbose flag
-  local verbose = opts.verbose or config.get("verbose")
-  if verbose then
-    table.insert(args, "-v")
-  end
+  local args = cli.base_args("gitmessage", opts, true)
 
   -- Add copy flag
   if opts.copy or config.get("ui.gitmessage.auto_copy") then
     table.insert(args, "-c")
   end
-
-  -- Add history flag
-  table.insert(args, "--history")
 
   -- Add prefix if provided
   if opts.prefix then

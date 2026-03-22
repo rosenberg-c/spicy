@@ -10,6 +10,7 @@ local float = require("spicy.ui.float")
 local input_ui = require("spicy.ui.input")
 local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
+local cli = require("spicy.utils.cli")
 
 --- Build the spicy ask command
 --- @param question string The question to ask
@@ -19,23 +20,7 @@ local function build_command(question, opts)
   opts = opts or {}
 
   local bin = config.get("bin.ask") or "ask"
-  local args = {}
-
-  -- Add model flag
-  local model = opts.model or config.get("models.ask")
-  if model then
-    table.insert(args, "-m")
-    table.insert(args, model)
-  end
-
-  -- Add verbose flag
-  local verbose = opts.verbose or config.get("verbose")
-  if verbose then
-    table.insert(args, "-v")
-  end
-
-  -- Add history flag
-  table.insert(args, "--history")
+  local args = cli.base_args("ask", opts, true)
 
   -- Add question
   table.insert(args, question)

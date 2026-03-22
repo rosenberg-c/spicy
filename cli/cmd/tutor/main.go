@@ -12,9 +12,11 @@ import (
 	"github.com/urfave/cli/v3"
 	"module/lib/cmd/tutor/validator"
 	"module/lib/internal/agent"
+	"module/lib/internal/cliutil"
 	"module/lib/internal/constants"
 	"module/lib/internal/filewriter"
 	"module/lib/internal/history"
+	"module/lib/internal/params"
 )
 
 func main() {
@@ -86,7 +88,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	saveHistory := cmd.Bool("history")
 	saveFlag := cmd.Bool("save")
 	output := cmd.String("output")
-	saveRequested := shouldSave(output, saveFlag)
+	saveRequested := cliutil.ShouldSave(output, saveFlag)
 
 	// Determine validation and generation models
 	validationModel := cmd.String("validation-model")
@@ -143,7 +145,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Ask for output path if saving
 	outputPath := output
 	if saveRequested && outputPath == "" {
-		outputPath, err = getOutputPath(validationResult.SuggestedFilename)
+		suggested := validationResult.SuggestedFilename
+		if suggested == "" {
+			suggested = "tutorial.md"
+		}
+		outputPath, err = cliutil.PromptOutputPath(suggested)
 		if err != nil {
 			return fmt.Errorf("get output path: %w", err)
 		}
@@ -176,18 +182,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Save to history if enabled
 	if saveHistory {
+		paramsMap := params.Base(baseModel, verbose, saveHistory, saveRequested, output)
+		paramsMap["validation_model"] = validationModel
+		paramsMap["generation_model"] = generationModel
+
 		historyData := map[string]interface{}{
 			"question": userInput,
 			"result":   content,
-			"params": map[string]interface{}{
-				"model":            baseModel,
-				"validation_model": validationModel,
-				"generation_model": generationModel,
-				"verbose":          verbose,
-				"history":          saveHistory,
-				"save":             saveRequested,
-				"output":           output,
-			},
+			"params":   paramsMap,
 		}
 		if saveRequested {
 			historyData["output"] = finalPath
@@ -199,10 +201,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	return nil
-}
-
-func shouldSave(output string, saveFlag bool) bool {
-	return saveFlag || output != ""
 }
 
 func getUserInput(question []string) (string, error) {
@@ -223,37 +221,6 @@ func getUserInput(question []string) (string, error) {
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return "", fmt.Errorf("empty input provided")
-	}
-
-	return input, nil
-}
-
-func getOutputPath(suggestedFilename string) (string, error) {
-	if suggestedFilename == "" {
-		suggestedFilename = "tutorial.md"
-	}
-
-	fmt.Printf("Save to file (default: %s) => ", suggestedFilename)
-
-	// Open /dev/tty to read from terminal instead of stdin
-	// This allows reading user input even when stdin is piped
-	tty, err := os.Open("/dev/tty")
-	if err != nil {
-		// If /dev/tty is not available (non-interactive), use default
-		fmt.Fprintln(os.Stderr, "\nNo terminal available, using default filename")
-		return suggestedFilename, nil
-	}
-	defer tty.Close()
-
-	reader := bufio.NewReader(tty)
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return suggestedFilename, nil
 	}
 
 	return input, nil

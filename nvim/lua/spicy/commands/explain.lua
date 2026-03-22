@@ -10,6 +10,7 @@ local float = require("spicy.ui.float")
 local spinner = require("spicy.ui.spinner")
 local helpers = require("spicy.utils.helpers")
 local fs = require("spicy.utils.fs")
+local cli = require("spicy.utils.cli")
 
 --- Build the spicy explain command
 --- @param code string The code to explain
@@ -19,29 +20,13 @@ local function build_command(code, opts)
   opts = opts or {}
 
   local bin = config.get("bin.explain") or "explain"
-  local args = {}
-
-  -- Add model flag
-  local model = opts.model or config.get("models.explain")
-  if model then
-    table.insert(args, "-m")
-    table.insert(args, model)
-  end
-
-  -- Add verbose flag
-  local verbose = opts.verbose or config.get("verbose")
-  if verbose then
-    table.insert(args, "-v")
-  end
+  local args = cli.base_args("explain", opts, true)
 
   -- Add language flag
   if opts.language then
     table.insert(args, "-l")
     table.insert(args, opts.language)
   end
-
-  -- Add history flag
-  table.insert(args, "--history")
 
   if opts.snippet then
     table.insert(args, "--snippet")

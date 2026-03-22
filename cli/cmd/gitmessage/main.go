@@ -13,6 +13,7 @@ import (
 	"module/lib/internal/agent"
 	"module/lib/internal/constants"
 	"module/lib/internal/history"
+	"module/lib/internal/params"
 )
 
 func main() {
@@ -128,16 +129,16 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Save to history if enabled
 	if saveHistory {
+		paramsMap := params.Base(model, verbose, saveHistory, false, "")
+		paramsMap["copy"] = copy
+		paramsMap["hint"] = hint
+		paramsMap["prefix"] = prefix
+
 		historyData := map[string]interface{}{
 			"hint":   hint,
 			"prefix": prefix,
 			"result": finalMsg,
-			"params": map[string]interface{}{
-				"model":   model,
-				"verbose": verbose,
-				"copy":    copy,
-				"history": saveHistory,
-			},
+			"params": paramsMap,
 		}
 		// Use commit message as filename suggestion
 		if err := history.Save("gitmessage", historyData, finalMsg); err != nil {
