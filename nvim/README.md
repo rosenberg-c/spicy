@@ -210,9 +210,10 @@ MIT
 
 ## History
 
-All commands automatically save their history to:
+The plugin runs CLI commands with `--history` enabled by default, so history is
+saved to:
 ```
-.spicy/<command>/HHMMSS.json
+.spicy/<command>/YYYYMMDD-HHMMSS_<command>[_suggestion].json
 ```
 
 Each entry is saved as a JSON file with:
