@@ -43,9 +43,6 @@ local function build_command(code, opts)
   -- Add history flag
   table.insert(args, "--history")
 
-  -- Add --no-save flag (we handle saving ourselves)
-  table.insert(args, "--no-save")
-
   if opts.snippet then
     table.insert(args, "--snippet")
   end

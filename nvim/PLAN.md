@@ -216,7 +216,7 @@ require('spicy.commands.tutor').generate({
 :SpicyExplain -l rust %
 
 " Don't save, just preview
-:SpicyExplain --no-save
+:SpicyExplain
 ```
 
 **Lua API**:

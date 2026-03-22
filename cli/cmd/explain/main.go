@@ -58,10 +58,6 @@ func main() {
 				Usage:   "Output file path (prompts if omitted)",
 			},
 			&cli.BoolFlag{
-				Name:  "no-save",
-				Usage: "Print to stdout instead of saving",
-			},
-			&cli.BoolFlag{
 				Name:  "history",
 				Usage: "Save command history to .spicy/explain/",
 			},
@@ -84,7 +80,7 @@ EXAMPLES:
    pbpaste | explain
    explain main.go --save
    explain main.go -o explanation.md
-   cat complex.go | explain --lang go`,
+   cat complex.go | explain --lang go --save`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 			defer cancel()
@@ -109,10 +105,9 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	contextInput := cmd.String("context")
 	contextFile := cmd.String("context-file")
 	output := cmd.String("output")
-	noSave := cmd.Bool("no-save")
 	saveHistory := cmd.Bool("history")
 	saveFlag := cmd.Bool("save")
-	saveRequested := shouldSave(output, saveFlag, noSave)
+	saveRequested := shouldSave(output, saveFlag)
 
 	// Get source from args (first positional argument)
 	source := cmd.Args().First()
@@ -172,7 +167,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 					"model":        model,
 					"verbose":      verbose,
 					"output":       output,
-					"no_save":      true,
 					"save":         false,
 					"history":      saveHistory,
 					"source":       source,
@@ -231,7 +225,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 				"model":        model,
 				"verbose":      verbose,
 				"output":       output,
-				"no_save":      false,
 				"save":         true,
 				"history":      saveHistory,
 				"source":       source,
@@ -250,11 +243,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func shouldSave(output string, saveFlag bool, noSave bool) bool {
-	if noSave {
-		return false
-	}
-
+func shouldSave(output string, saveFlag bool) bool {
 	return saveFlag || output != ""
 }
 
