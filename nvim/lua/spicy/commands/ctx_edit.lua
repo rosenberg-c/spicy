@@ -9,9 +9,8 @@ local config = require("spicy.config")
 local input_ui = require("spicy.ui.input")
 local helpers = require("spicy.utils.helpers")
 local cli = require("spicy.utils.cli")
-
-local INLINE_SPINNER_FRAMES = { "-", "\\", "|", "/" }
-local inline_spinner_ns = vim.api.nvim_create_namespace("spicy.ctx_edit")
+local inline_spinner = require("spicy.utils.inline_spinner")
+local jsonutil = require("spicy.utils.json")
 
 --- Build the spicy ctx-edit command
 --- @param prompt string Instruction for update
@@ -36,95 +35,6 @@ local function build_command(prompt, context, opts)
   return bin, args
 end
 
-local function decode_response(stdout)
-  local output = table.concat(stdout, "\n")
-  output = helpers.trim(output)
-  output = output:gsub("%z", "")
-  output = output:gsub("\r", "")
-
-  if output == "" then
-    return nil, "empty response", output
-  end
-
-  local ok, decoded = pcall(vim.fn.json_decode, output)
-  if not ok or type(decoded) ~= "table" then
-    if type(vim.json) == "table" and type(vim.json.decode) == "function" then
-      local json_ok, json_decoded = pcall(vim.json.decode, output)
-      if json_ok and type(json_decoded) == "table" then
-        decoded = json_decoded
-        ok = true
-      end
-    end
-  end
-
-  if not ok or type(decoded) ~= "table" then
-    local lines = vim.split(output, "\n", { plain = true })
-    for i = #lines, 1, -1 do
-      local line = helpers.trim(lines[i])
-      if line ~= "" then
-        local line_ok, line_decoded = pcall(vim.fn.json_decode, line)
-        if line_ok then
-          if type(line_decoded) == "table" then
-            decoded = line_decoded
-            ok = true
-            break
-          end
-          if type(line_decoded) == "string" then
-            local nested_ok, nested_decoded = pcall(vim.fn.json_decode, line_decoded)
-            if nested_ok and type(nested_decoded) == "table" then
-              decoded = nested_decoded
-              ok = true
-              break
-            end
-          end
-        end
-      end
-    end
-  end
-
-  if not ok or type(decoded) ~= "table" then
-    local first = output:find("{", 1, true)
-    local last = nil
-    for i = #output, 1, -1 do
-      if output:sub(i, i) == "}" then
-        last = i
-        break
-      end
-    end
-    if first and last and last > first then
-      local candidate = output:sub(first, last)
-      local cand_ok, cand_decoded = pcall(vim.fn.json_decode, candidate)
-      if cand_ok and type(cand_decoded) == "table" then
-        decoded = cand_decoded
-        ok = true
-      end
-    end
-  end
-
-  if not ok or type(decoded) ~= "table" then
-    local stripped = helpers.trim(output)
-    local quote = stripped:sub(1, 1)
-    if (quote == '"' or quote == "'") and stripped:sub(-1) == quote then
-      local unquoted = stripped:sub(2, -2)
-      local uq_ok, uq_decoded = pcall(vim.fn.json_decode, unquoted)
-      if uq_ok and type(uq_decoded) == "table" then
-        decoded = uq_decoded
-        ok = true
-      end
-    end
-  end
-
-  if not ok or type(decoded) ~= "table" then
-    return nil, "invalid json response", output
-  end
-
-  if not decoded.updated_text then
-    return nil, "missing updated_text in response", output
-  end
-
-  return decoded, nil, output
-end
-
 local function apply_update(range, updated_text)
   local replacement = vim.split(updated_text, "\n", { plain = true })
   if range.start_col and range.end_col then
@@ -146,54 +56,6 @@ local function apply_update(range, updated_text)
     false,
     replacement
   )
-end
-
-local function start_inline_spinner(bufnr, start_line, end_line)
-  local frame = 1
-  local timer = vim.loop.new_timer()
-  local top_line = math.max(start_line - 1, 0)
-  local bottom_line = math.max(end_line - 1, 0)
-
-  local function render()
-    local glyph = INLINE_SPINNER_FRAMES[frame]
-    local text = glyph .. " Updating selection..."
-    local opts = {
-      virt_text = { { text, "Comment" } },
-      virt_text_pos = "eol",
-    }
-
-    vim.api.nvim_buf_set_extmark(
-      bufnr,
-      inline_spinner_ns,
-      top_line,
-      0,
-      opts
-    )
-    vim.api.nvim_buf_set_extmark(
-      bufnr,
-      inline_spinner_ns,
-      bottom_line,
-      0,
-      opts
-    )
-  end
-
-  local function tick()
-    frame = (frame % #INLINE_SPINNER_FRAMES) + 1
-    vim.api.nvim_buf_clear_namespace(bufnr, inline_spinner_ns, 0, -1)
-    render()
-  end
-
-  vim.schedule(render)
-  timer:start(0, 120, vim.schedule_wrap(tick))
-
-  return {
-    stop = function()
-      timer:stop()
-      timer:close()
-      vim.api.nvim_buf_clear_namespace(bufnr, inline_spinner_ns, 0, -1)
-    end,
-  }
 end
 
 --- Execute ctx-edit command
@@ -226,7 +88,7 @@ function M.execute(prompt, selection, range, opts, callback)
     show_spinner = true
   end
   if show_spinner then
-    inline_spinner = start_inline_spinner(
+    inline_spinner = inline_spinner.start(
       range.bufnr,
       range.start_line,
       range.end_line
@@ -253,17 +115,30 @@ function M.execute(prompt, selection, range, opts, callback)
         return
       end
 
-      local payload, err, raw_output = decode_response(stdout)
-      if err then
-        if config.get("verbose") and raw_output and raw_output ~= "" then
-          helpers.info("ctx-edit raw stdout: " .. raw_output)
-        end
-        helpers.error("Failed to parse ctx-edit output: " .. err)
-        if callback then
-          callback(nil, err)
-        end
-        return
+    local raw_output = table.concat(stdout, "\n")
+    raw_output = raw_output:gsub("%z", "")
+    raw_output = raw_output:gsub("\r", "")
+
+    local payload, err = jsonutil.decode_loose(raw_output)
+    if err then
+      if config.get("verbose") and raw_output ~= "" then
+        helpers.info("ctx-edit raw stdout: " .. raw_output)
       end
+      helpers.error("Failed to parse ctx-edit output: " .. err)
+      if callback then
+        callback(nil, err)
+      end
+      return
+    end
+
+    if not payload.updated_text then
+      local err_msg = "missing updated_text in response"
+      helpers.error("Failed to parse ctx-edit output: " .. err_msg)
+      if callback then
+        callback(nil, err_msg)
+      end
+      return
+    end
 
       local updated_text = payload.updated_text
       if helpers.trim(updated_text) == "" then
