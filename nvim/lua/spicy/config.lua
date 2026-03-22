@@ -56,6 +56,8 @@ local DEFAULT_CONFIG = {
       save_dir = vim.fn.expand("~/explanations"),
       side_by_side = false,
       show_line_numbers = true,
+      context_max_chars = 3000,
+      context_surround_lines = 80,
     },
 
     gitmessage = {

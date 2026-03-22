@@ -46,6 +46,18 @@ local function build_command(code, opts)
   -- Add --no-save flag (we handle saving ourselves)
   table.insert(args, "--no-save")
 
+  if opts.snippet then
+    table.insert(args, "--snippet")
+  end
+
+  if opts.context_file then
+    table.insert(args, "--context-file")
+    table.insert(args, opts.context_file)
+  elseif opts.context then
+    table.insert(args, "--context")
+    table.insert(args, opts.context)
+  end
+
   return bin, args, code
 end
 
@@ -55,6 +67,18 @@ end
 --- @param callback function|nil Callback(explanation, err)
 function M.execute(code, opts, callback)
   opts = opts or {}
+
+  local context_tmp_file = nil
+  if opts.context and not opts.context_file then
+    context_tmp_file = vim.fn.tempname() .. "-context.txt"
+    local ok, err = fs.write_file(context_tmp_file, opts.context)
+    if not ok then
+      helpers.error("Failed to create context file: " .. err)
+      return
+    end
+    opts.context_file = context_tmp_file
+    opts.context = nil
+  end
 
   -- Build command (stdin will be used for code)
   local cmd, args, stdin_data = build_command(code, opts)
@@ -95,8 +119,11 @@ function M.execute(code, opts, callback)
   job.run(cmd, args, {
     timeout = opts.timeout or config.get("timeout"),
     on_exit = function(stdout, stderr, code_exit)
-      -- Cleanup temp file
+      -- Cleanup temp files
       vim.loop.fs_unlink(tmp_file)
+      if context_tmp_file then
+        vim.loop.fs_unlink(context_tmp_file)
+      end
 
       -- Stop spinner
       if spinner_id then
@@ -192,8 +219,21 @@ function M.explain(opts)
   local code
   local source_name
 
+  if opts.range and not opts.selection_text then
+    local selection, start_line, start_col, end_line, end_col = helpers.get_visual_selection()
+    if selection and start_line == opts.range.start_line and end_line == opts.range.end_line then
+      opts.selection_text = selection
+      opts.range.start_col = start_col
+      opts.range.end_col = end_col
+    end
+  end
+
   -- Determine what to explain
-  if opts.range then
+  if opts.selection_text then
+    code = opts.selection_text
+    source_name = helpers.get_filename()
+    opts.source_name = source_name
+  elseif opts.range then
     -- Explain range
     local bufnr = opts.buffer or 0
     code = helpers.get_lines_in_range(
@@ -203,6 +243,29 @@ function M.explain(opts)
     )
     source_name = helpers.get_filename()
     opts.source_name = source_name
+    opts.snippet = true
+    local surround = config.get("ui.explain.context_surround_lines")
+    if not surround or surround < 0 then
+      surround = 80
+    end
+    if surround > 0 then
+      local total_lines = vim.api.nvim_buf_line_count(bufnr)
+      local start_line = math.max(1, opts.range.start_line - surround)
+      local end_line = math.min(total_lines, opts.range.end_line + surround)
+      local context = helpers.get_lines_in_range(bufnr, start_line, end_line)
+      context = (
+        "Context lines %d-%d of %d (around selection).\n\n%s"
+      ):format(start_line, end_line, total_lines, context)
+      local max_chars = config.get("ui.explain.context_max_chars")
+      if max_chars == nil or max_chars <= 0 then
+        max_chars = 3000
+      end
+      if #context > max_chars then
+        context = context:sub(1, max_chars)
+          .. "\n\n[Context truncated to max chars]\n"
+      end
+      opts.context = context
+    end
   else
     -- Explain whole buffer
     local bufnr = opts.buffer or 0
@@ -221,6 +284,16 @@ function M.explain(opts)
     return
   end
 
+  if config.get("verbose") then
+    local ctx_len = 0
+    if opts.context then
+      ctx_len = #opts.context
+    end
+    helpers.info(
+      ("Explain selection len=%d, context len=%d"):format(#code, ctx_len)
+    )
+  end
+
   M.execute(code, opts, opts.on_complete)
 end
 
@@ -230,16 +303,19 @@ function M.explain_visual(opts)
   opts = opts or {}
 
   -- Get visual selection
-  local selection, start_line, end_line = helpers.get_visual_selection()
+  local selection, start_line, start_col, end_line, end_col = helpers.get_visual_selection()
 
   if not selection then
     helpers.error("No visual selection")
     return
   end
 
+  opts.selection_text = selection
   opts.range = {
     start_line = start_line,
+    start_col = start_col,
     end_line = end_line,
+    end_col = end_col,
   }
 
   M.explain(opts)

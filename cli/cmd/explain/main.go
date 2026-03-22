@@ -40,6 +40,18 @@ func main() {
 				Aliases: []string{"l", "lang"},
 				Usage:   "Programming language (auto-detected if omitted)",
 			},
+			&cli.BoolFlag{
+				Name:  "snippet",
+				Usage: "Explain a snippet without requesting more context",
+			},
+			&cli.StringFlag{
+				Name:  "context",
+				Usage: "Additional context to include with the explanation",
+			},
+			&cli.StringFlag{
+				Name:  "context-file",
+				Usage: "File path to include as context",
+			},
 			&cli.StringFlag{
 				Name:    "output",
 				Aliases: []string{"o"},
@@ -92,6 +104,9 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	verbose := cmd.Bool("verbose")
 	model := cmd.String("model")
 	language := cmd.String("language")
+	snippet := cmd.Bool("snippet")
+	contextInput := cmd.String("context")
+	contextFile := cmd.String("context-file")
 	output := cmd.String("output")
 	noSave := cmd.Bool("no-save")
 	saveHistory := cmd.Bool("history")
@@ -120,8 +135,13 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	contextContent, err := getContextInput(contextInput, contextFile)
+	if err != nil {
+		return fmt.Errorf("get context input: %w", err)
+	}
+
 	// Build prompt
-	prompt := buildExplanationPrompt(code, language)
+	prompt := buildExplanationPrompt(code, language, snippet, contextContent)
 
 	// Generate explanation
 	fmt.Fprintln(os.Stderr, "Generating explanation...")
@@ -132,6 +152,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	explanation = strings.TrimSpace(explanation)
+	explanation = sanitizeExplanation(explanation, snippet)
 
 	// Print to stdout if --no-save
 	if noSave {
@@ -141,8 +162,23 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		if saveHistory {
 			historyData := map[string]interface{}{
 				"source":   sourceName,
+				"code":     code,
 				"language": language,
 				"result":   explanation,
+				"context":  contextContent,
+				"params": map[string]interface{}{
+					"model":        model,
+					"verbose":      verbose,
+					"output":       output,
+					"no_save":      noSave,
+					"save":         saveToFile,
+					"history":      saveHistory,
+					"source":       source,
+					"language":     cmd.String("language"),
+					"snippet":      snippet,
+					"context":      contextInput,
+					"context_file": contextFile,
+				},
 			}
 			// Use source name as filename suggestion
 			if err := history.Save("explain", historyData, sourceName); err != nil {
@@ -184,9 +220,24 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	if saveHistory {
 		historyData := map[string]interface{}{
 			"source":   sourceName,
+			"code":     code,
 			"language": language,
 			"output":   finalPath,
 			"result":   explanation,
+			"context":  contextContent,
+			"params": map[string]interface{}{
+				"model":        model,
+				"verbose":      verbose,
+				"output":       output,
+				"no_save":      noSave,
+				"save":         saveToFile,
+				"history":      saveHistory,
+				"source":       source,
+				"language":     cmd.String("language"),
+				"snippet":      snippet,
+				"context":      contextInput,
+				"context_file": contextFile,
+			},
 		}
 		// Use source name as filename suggestion
 		if err := history.Save("explain", historyData, sourceName); err != nil {
@@ -323,10 +374,26 @@ func detectLanguage(source, code string) string {
 	return "code"
 }
 
-func buildExplanationPrompt(code, language string) string {
+func buildExplanationPrompt(code, language string, snippet bool, context string) string {
+	contextNote := ""
+	if snippet {
+		contextNote = "The input is a short snippet. Explain only what is present without asking for more context or requesting more code."
+	}
+	contextBlock := ""
+	if strings.TrimSpace(context) != "" {
+		contextBlock = fmt.Sprintf("\nAdditional context for reference (focus on the snippet):\n\n```\n%s\n```\n", context)
+	}
 	return fmt.Sprintf(`You are a senior software engineer and technical educator.
 Explain the following %s code in detail.
 Write the explanation as a clear, well-structured markdown document.
+
+%s
+%s
+
+Rules:
+- Do not ask for more context or additional code.
+- Do not include system reminders or meta commentary.
+- Focus on what can be inferred from the snippet and provided context.
 
 Include:
 - High-level summary of what the code does
@@ -340,7 +407,57 @@ Assume the reader is a developer who wants to understand the code.
 
 Code to explain:
 
-%s`, language, addLineNumbers(code))
+%s`, language, contextNote, contextBlock, addLineNumbers(code))
+}
+
+func sanitizeExplanation(input string, snippet bool) string {
+	if !snippet {
+		return input
+	}
+
+	lines := strings.Split(input, "\n")
+	filtered := make([]string, 0, len(lines))
+	for _, line := range lines {
+		lower := strings.ToLower(line)
+		if strings.Contains(lower, "system-reminder") {
+			continue
+		}
+		if strings.Contains(lower, "please paste") ||
+			strings.Contains(lower, "share the full") ||
+			strings.Contains(lower, "i only have") ||
+			strings.Contains(lower, "i only see") ||
+			strings.Contains(lower, "can't explain") ||
+			strings.Contains(lower, "cannot explain") ||
+			strings.Contains(lower, "need more context") {
+			continue
+		}
+		filtered = append(filtered, line)
+	}
+
+	result := strings.TrimSpace(strings.Join(filtered, "\n"))
+	if result == "" {
+		return strings.TrimSpace(input)
+	}
+	return result
+}
+
+func getContextInput(contextInput, contextFile string) (string, error) {
+	if contextInput != "" && contextFile != "" {
+		return "", fmt.Errorf("use either --context or --context-file, not both")
+	}
+	if contextInput != "" {
+		return contextInput, nil
+	}
+	if contextFile == "" {
+		return "", nil
+	}
+
+	content, err := os.ReadFile(contextFile)
+	if err != nil {
+		return "", fmt.Errorf("read context file: %w", err)
+	}
+
+	return string(content), nil
 }
 
 func addLineNumbers(code string) string {

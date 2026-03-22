@@ -159,6 +159,13 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"question": userInput,
 			"output":   finalPath,
 			"result":   content,
+			"params": map[string]interface{}{
+				"model":            baseModel,
+				"validation_model": validationModel,
+				"generation_model": generationModel,
+				"verbose":          verbose,
+				"history":          saveHistory,
+			},
 		}
 		// Use question as filename suggestion
 		if err := history.Save("tutor", historyData, userInput); err != nil {

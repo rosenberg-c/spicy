@@ -254,7 +254,7 @@ function M.ask_visual(opts)
   opts = opts or {}
 
   -- Get visual selection
-  local selection, start_line, end_line = helpers.get_visual_selection()
+  local selection, start_line, _, end_line, _ = helpers.get_visual_selection()
 
   if not selection then
     helpers.error("No visual selection")

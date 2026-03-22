@@ -93,6 +93,10 @@ require("spicy").setup({
         border = "rounded",
       },
     },
+    explain = {
+      context_max_chars = 3000,
+      context_surround_lines = 80,
+    },
   },
 
   -- Behavior

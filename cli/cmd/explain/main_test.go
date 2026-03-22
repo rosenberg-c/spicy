@@ -378,12 +378,14 @@ func TestBuildExplanationPrompt(t *testing.T) {
 		name         string
 		code         string
 		language     string
+		snippet      bool
 		wantContains []string
 	}{
 		{
 			name:     "go code",
 			code:     "package main",
 			language: "Go",
+			snippet:  false,
 			wantContains: []string{
 				"Go",
 				"package main",
@@ -395,17 +397,42 @@ func TestBuildExplanationPrompt(t *testing.T) {
 			name:     "python code",
 			code:     "def hello():\n    pass",
 			language: "Python",
+			snippet:  false,
 			wantContains: []string{
 				"Python",
 				"def hello():",
 				"markdown",
 			},
 		},
+		{
+			name:     "snippet note",
+			code:     "const x = 1",
+			language: "JavaScript",
+			snippet:  true,
+			wantContains: []string{
+				"short snippet",
+				"JavaScript",
+			},
+		},
+		{
+			name:     "includes context",
+			code:     "const x = 1",
+			language: "JavaScript",
+			snippet:  true,
+			wantContains: []string{
+				"Additional context",
+				"function foo",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildExplanationPrompt(tt.code, tt.language)
+			context := ""
+			if tt.name == "includes context" {
+				context = "function foo() {}"
+			}
+			got := buildExplanationPrompt(tt.code, tt.language, tt.snippet, context)
 
 			for _, want := range tt.wantContains {
 				if !strings.Contains(got, want) {

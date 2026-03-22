@@ -4,7 +4,7 @@
 local M = {}
 
 --- Get visual selection text
---- @return string|nil, number|nil, number|nil text, start_line, end_line
+--- @return string|nil, number|nil, number|nil, number|nil, number|nil text, start_line, start_col, end_line, end_col
 function M.get_visual_selection()
   -- Get visual selection marks
   local start_pos = vim.fn.getpos("'<")
@@ -12,24 +12,72 @@ function M.get_visual_selection()
 
   local start_line = start_pos[2]
   local end_line = end_pos[2]
+  local start_col = start_pos[3]
+  local end_col = end_pos[3]
 
   if start_line == 0 or end_line == 0 then
-    return nil, nil, nil
+    return nil, nil, nil, nil, nil
   end
 
-  -- Get lines in selection
-  local lines = vim.api.nvim_buf_get_lines(
-    0,
-    start_line - 1,
-    end_line,
-    false
-  )
+  -- Normalize order
+  if start_line > end_line or (start_line == end_line and start_col > end_col) then
+    start_line, end_line = end_line, start_line
+    start_col, end_col = end_col, start_col
+  end
 
+  local bufnr = 0
+  local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
   if #lines == 0 then
-    return nil, nil, nil
+    return nil, nil, nil, nil, nil
   end
 
-  return table.concat(lines, "\n"), start_line, end_line
+  local first_line = lines[1] or ""
+  local last_line = lines[#lines] or ""
+  if start_col < 1 then
+    start_col = 1
+  end
+  if end_col < 1 then
+    end_col = 1
+  end
+  if start_col > #first_line + 1 then
+    start_col = #first_line + 1
+  end
+  if end_col > #last_line then
+    end_col = #last_line
+  end
+
+  local text_lines
+  if start_line == end_line then
+    local line = first_line
+    local start_idx = start_col - 1
+    local end_idx = end_col
+    local slice = ""
+    if end_idx >= start_col and end_idx <= #line then
+      slice = line:sub(start_idx + 1, end_idx)
+    elseif end_idx >= start_col and end_idx > #line then
+      slice = line:sub(start_idx + 1)
+    end
+    text_lines = { slice }
+  else
+    local end_col_exclusive = end_col
+    if end_col_exclusive < 0 then
+      end_col_exclusive = 0
+    end
+    text_lines = vim.api.nvim_buf_get_text(
+      bufnr,
+      start_line - 1,
+      start_col - 1,
+      end_line - 1,
+      end_col_exclusive,
+      {}
+    )
+  end
+
+  if not text_lines or #text_lines == 0 then
+    return nil, nil, nil, nil, nil
+  end
+
+  return table.concat(text_lines, "\n"), start_line, start_col, end_line, end_col
 end
 
 --- Get current buffer content

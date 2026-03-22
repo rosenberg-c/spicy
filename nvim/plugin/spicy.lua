@@ -60,7 +60,11 @@ vim.api.nvim_create_user_command("SpicyExplain", function(opts)
     }
   end
 
-  commands.explain(options)
+  if options.range then
+    commands.explain(options)
+  else
+    commands.explain_visual(options)
+  end
 end, {
   nargs = "*",
   range = true,

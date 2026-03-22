@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"module/lib/internal/filename"
@@ -50,7 +51,7 @@ func Save(command string, data map[string]interface{}, suggestedFilename string)
 
 	// Create the entry
 	entry := Entry{
-		Data:      data,
+		Data:      normalizeData(data),
 		Date:      now.Format("2006-01-02 15:04:05"),
 		Version:   1,
 		Command:   command,
@@ -69,6 +70,67 @@ func Save(command string, data map[string]interface{}, suggestedFilename string)
 	}
 
 	return nil
+}
+
+func normalizeData(data map[string]interface{}) map[string]interface{} {
+	wrapped := make(map[string]interface{}, len(data))
+	for k, v := range data {
+		wrapped[k] = normalizeValue(v)
+	}
+	return wrapped
+}
+
+func normalizeValue(value interface{}) interface{} {
+	switch v := value.(type) {
+	case string:
+		return wrapText(v, 80)
+	case []interface{}:
+		out := make([]interface{}, len(v))
+		for i, item := range v {
+			out[i] = normalizeValue(item)
+		}
+		return out
+	case map[string]interface{}:
+		return normalizeData(v)
+	default:
+		return value
+	}
+}
+
+func wrapText(input string, width int) string {
+	if width <= 0 || input == "" {
+		return input
+	}
+
+	lines := strings.Split(input, "\n")
+	for i, line := range lines {
+		lines[i] = wrapLine(line, width)
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func wrapLine(line string, width int) string {
+	if len(line) <= width {
+		return line
+	}
+
+	var wrapped []string
+	remaining := line
+	for len(remaining) > width {
+		breakAt := strings.LastIndex(remaining[:width+1], " ")
+		if breakAt <= 0 {
+			breakAt = width
+		}
+		segment := strings.TrimRight(remaining[:breakAt], " ")
+		wrapped = append(wrapped, segment)
+		remaining = strings.TrimLeft(remaining[breakAt:], " ")
+	}
+	if remaining != "" {
+		wrapped = append(wrapped, remaining)
+	}
+
+	return strings.Join(wrapped, "\n")
 }
 
 // Load reads a single history entry from a file

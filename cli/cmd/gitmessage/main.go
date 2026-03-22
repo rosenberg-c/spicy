@@ -132,6 +132,12 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"hint":   hint,
 			"prefix": prefix,
 			"result": finalMsg,
+			"params": map[string]interface{}{
+				"model":   model,
+				"verbose": verbose,
+				"copy":    copy,
+				"history": saveHistory,
+			},
 		}
 		// Use commit message as filename suggestion
 		if err := history.Save("gitmessage", historyData, finalMsg); err != nil {

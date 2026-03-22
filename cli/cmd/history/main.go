@@ -305,6 +305,10 @@ func formatEntryAsMarkdown(entry *history.Entry) string {
 			sb.WriteString("## Source\n\n")
 			sb.WriteString(fmt.Sprintf("`%s`\n\n", src))
 		}
+		if code, ok := entry.Data["code"].(string); ok && code != "" {
+			sb.WriteString("## Code\n\n")
+			sb.WriteString(fmt.Sprintf("```\n%s\n```\n\n", code))
+		}
 		if lang, ok := entry.Data["language"].(string); ok {
 			sb.WriteString("## Language\n\n")
 			sb.WriteString(fmt.Sprintf("%s\n\n", lang))

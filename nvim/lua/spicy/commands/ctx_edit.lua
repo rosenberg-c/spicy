@@ -137,12 +137,24 @@ local function decode_response(stdout)
   return decoded, nil, output
 end
 
-local function apply_update(bufnr, start_line, end_line, updated_text)
+local function apply_update(range, updated_text)
   local replacement = vim.split(updated_text, "\n", { plain = true })
+  if range.start_col and range.end_col then
+    vim.api.nvim_buf_set_text(
+      range.bufnr,
+      range.start_line - 1,
+      range.start_col - 1,
+      range.end_line - 1,
+      range.end_col,
+      replacement
+    )
+    return
+  end
+
   vim.api.nvim_buf_set_lines(
-    bufnr,
-    start_line - 1,
-    end_line,
+    range.bufnr,
+    range.start_line - 1,
+    range.end_line,
     false,
     replacement
   )
@@ -275,7 +287,7 @@ function M.execute(prompt, selection, range, opts, callback)
       end
 
       vim.schedule(function()
-        apply_update(range.bufnr, range.start_line, range.end_line, updated_text)
+        apply_update(range, updated_text)
         helpers.info("Selection updated")
         if callback then
           callback(updated_text, nil)
@@ -310,11 +322,23 @@ function M.ctx_edit(opts)
   end
 
   local bufnr = opts.buffer or 0
-  local selection = helpers.get_lines_in_range(
-    bufnr,
-    opts.range.start_line,
-    opts.range.end_line
-  )
+  if opts.range and not opts.selection_text then
+    local selection, start_line, start_col, end_line, end_col = helpers.get_visual_selection()
+    if selection and start_line == opts.range.start_line and end_line == opts.range.end_line then
+      opts.selection_text = selection
+      opts.range.start_col = start_col
+      opts.range.end_col = end_col
+    end
+  end
+
+  local selection = opts.selection_text
+  if not selection then
+    selection = helpers.get_lines_in_range(
+      bufnr,
+      opts.range.start_line,
+      opts.range.end_line
+    )
+  end
 
   if not selection or selection == "" then
     helpers.error("No selection content")
@@ -333,7 +357,9 @@ function M.ctx_edit(opts)
     local range = {
       bufnr = bufnr,
       start_line = opts.range.start_line,
+      start_col = opts.range.start_col,
       end_line = opts.range.end_line,
+      end_col = opts.range.end_col,
     }
 
     M.execute(prompt, selection, range, opts, opts.on_complete)
@@ -345,15 +371,18 @@ end
 function M.ctx_edit_visual(opts)
   opts = opts or {}
 
-  local selection, start_line, end_line = helpers.get_visual_selection()
+  local selection, start_line, start_col, end_line, end_col = helpers.get_visual_selection()
   if not selection then
     helpers.error("No visual selection")
     return
   end
 
+  opts.selection_text = selection
   opts.range = {
     start_line = start_line,
+    start_col = start_col,
     end_line = end_line,
+    end_col = end_col,
   }
 
   M.ctx_edit(opts)

@@ -118,6 +118,12 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		historyData := map[string]interface{}{
 			"question": userInput,
 			"result":   content,
+			"params": map[string]interface{}{
+				"model":   model,
+				"verbose": verbose,
+				"save":    saveToFile,
+				"history": saveHistory,
+			},
 		}
 		// Use first part of question as filename suggestion
 		if err := history.Save("ask", historyData, userInput); err != nil {
