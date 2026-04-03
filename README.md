@@ -12,6 +12,72 @@ Quick setup:
 - Neovim: see [Neovim plugin](#neovim-plugin)
 - Hammerspoon: see [Hammerspoon module](#hammerspoon-module)
 
+## Inspiration
+
+This project was inspired by https://github.com/ThePrimeagen/99, but I chose to build my own solution tailored to how I work.
+
+## Feature highlights
+
+### CLI (`cli/`)
+
+- `ask`: interactive or CLI arguments, model selection, save to markdown, optional history
+- `explain`: file/dir/stdin inputs, language detection, optional context, save to markdown, history export
+- `tutor`: input validation, separate validation/generation models, save to markdown, history
+- `ctx-edit`: edit selected context from file/lines or stdin, optional in-place write, JSON output
+- `gitmessage`: staged diff summary, optional hint/prefix, copy to clipboard, history
+- `history`: list/filter entries and export to markdown
+
+Examples:
+
+```sh
+ask "what is a closure"
+ask --history -m openai/gpt-5.2-codex "explain rust lifetimes"
+
+explain main.go
+explain ./internal/agent --save
+pbpaste | explain --lang go
+
+tutor "how does git rebase work"
+tutor --save --validation-model openai/gpt-4o --generation-model openai/o1 "how to use ffmpeg"
+
+ctx-edit -p "rename foo to bar" -c "const foo = 1"
+ctx-edit -p "add error handling" -f main.go --start 12 --end 24 --write
+
+gitmessage feat -c
+gitmessage -i "focus on perf" fix
+
+shistory list --command ask
+shistory export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
+```
+
+### Neovim plugin (`nvim/`)
+
+- Commands for `SpicyAsk` and `SpicyCtxEdit` with visual selection support
+- Configurable models and UI output modes (float/buffer/split)
+- CLI-backed execution with built-in history saving
+- Health check integration (`:checkhealth spicy`)
+
+Examples:
+
+```vim
+:SpicyAsk what is a closure in JavaScript
+:'<,'>SpicyAsk explain this selection
+:'<,'>SpicyCtxEdit
+```
+
+### Hammerspoon module (`hammerspoon/`)
+
+- Hotkeys to run `ask` in iTerm or fetch output into Sublime
+- History browser with inline previews
+- Keyboard navigation + delete entries (backspace/delete or Ctrl+D)
+- Lightweight spinner UI while running `ask`
+
+Examples:
+
+- `alt+shift+A` -> prompt, run `ask` in a new iTerm window
+- `alt+shift+S` -> prompt, run `ask`, open response in Sublime
+- Use arrow keys to select history, press `Ctrl+D` to delete
+
 ## CLI
 
 See `cli/README.md` for full docs.
