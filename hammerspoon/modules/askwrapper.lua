@@ -183,7 +183,9 @@ local function createAskChooserWithHistory(onSubmitNew, onSubmitHistory, subText
 		end
 
 		local keyCode = e:getKeyCode()
-		if keyCode ~= 125 and keyCode ~= 126 and keyCode ~= 51 and keyCode ~= 117 then
+		local flags = e:getFlags()
+		local isCtrlD = keyCode == 2 and flags and flags.ctrl
+		if keyCode ~= 125 and keyCode ~= 126 and keyCode ~= 51 and keyCode ~= 117 and not isCtrlD then
 			return false
 		end
 
@@ -191,7 +193,7 @@ local function createAskChooserWithHistory(onSubmitNew, onSubmitHistory, subText
 			return false
 		end
 
-		if keyCode == 51 or keyCode == 117 then
+		if keyCode == 51 or keyCode == 117 or isCtrlD then
 			if (historyState.lastQuery or "") ~= "" then
 				return false
 			end
