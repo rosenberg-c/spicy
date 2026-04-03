@@ -12,6 +12,23 @@ local cli = require("spicy.utils.cli")
 local runner = require("spicy.utils.runner")
 local output = require("spicy.ui.output")
 
+local function resolve_save_dir(value)
+  if type(value) == "function" then
+    local ok, result = pcall(value)
+    if not ok then
+      helpers.warn("ui.tutor.save_dir function failed; using ~/tutorials")
+      return fs.expand("~/tutorials")
+    end
+    value = result
+  end
+
+  if type(value) ~= "string" or value == "" then
+    return fs.expand("~/tutorials")
+  end
+
+  return fs.expand(value)
+end
+
 --- Build the spicy tutor command
 --- @param topic string The tutorial topic
 --- @param opts table|nil Options (model, verbose)
@@ -78,8 +95,7 @@ function M.execute(topic, opts, callback)
 
         local filepath = nil
         if auto_save then
-          local save_dir = config.get("ui.tutor.save_dir")
-          save_dir = fs.expand(save_dir)
+          local save_dir = resolve_save_dir(config.get("ui.tutor.save_dir"))
 
           -- Create directory if needed
           if not fs.exists(save_dir) then

@@ -42,6 +42,14 @@ require("spicy").setup({
       output = "buffer",
       auto_save = true,
       save_dir = vim.fn.expand("~/tutorials"),
+      -- Example: pull from vimwiki (2nd configured wiki)
+      -- save_dir = function()
+      --   local list = vim.g.vimwiki_list
+      --   if type(list) == "table" and list[2] and list[2].path then
+      --     return vim.fn.expand(list[2].path)
+      --   end
+      --   return vim.fn.expand("~/tutorials")
+      -- end,
       auto_open = true,
       markdown_preview = false,
     },
