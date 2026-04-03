@@ -1,9 +1,16 @@
 # Spicy Monorepo
 
-This repo contains two separate projects:
+This repo contains the core tooling and editor/automation integrations:
 
 - `cli/` - The Spicy CLI tools (Go)
 - `nvim/` - The spicy.nvim Neovim plugin
+- `hammerspoon/` - The Hammerspoon module that wraps `spicy ask`
+
+Quick setup:
+
+- CLI: see [CLI](#cli)
+- Neovim: see [Neovim plugin](#neovim-plugin)
+- Hammerspoon: see [Hammerspoon module](#hammerspoon-module)
 
 ## CLI
 
