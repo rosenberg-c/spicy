@@ -44,7 +44,7 @@ The Hammerspoon integration lives in `hammerspoon/modules/askwrapper.lua` and wr
 Setup (symlink into your Hammerspoon config):
 
 ```sh
-ln -s "/path/to/spicy/hammerspoon/modules/askwrapper.lua" "$HOME/.hammerspoon/modules/askwrapper.lua"
+ln -s "$(pwd)/hammerspoon/modules/askwrapper.lua" "$HOME/.hammerspoon/modules/askwrapper.lua"
 ```
 
 Then enable it from your `~/.hammerspoon/init.lua`:
