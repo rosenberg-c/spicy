@@ -36,3 +36,19 @@ Lazy.nvim example:
   end,
 }
 ```
+
+## Hammerspoon module
+
+The Hammerspoon integration lives in `hammerspoon/modules/askwrapper.lua` and wraps the `spicy ask` CLI.
+
+Setup (symlink into your Hammerspoon config):
+
+```sh
+ln -s "/path/to/spicy/hammerspoon/modules/askwrapper.lua" "$HOME/.hammerspoon/modules/askwrapper.lua"
+```
+
+Then enable it from your `~/.hammerspoon/init.lua`:
+
+```lua
+require("modules.askwrapper").setup()
+```
