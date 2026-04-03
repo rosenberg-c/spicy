@@ -89,6 +89,18 @@ make -C cli build-all
 make -C cli install-all
 ```
 
+You can run installs from any directory with:
+
+```sh
+make -C /path/to/spicy/cli install-all
+```
+
+Ensure your shell `PATH` includes `~/.local/bin` (default install target):
+
+```sh
+echo $PATH
+```
+
 ## Neovim plugin
 
 See `nvim/README.md` for full docs.
