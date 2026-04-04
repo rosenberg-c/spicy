@@ -20,63 +20,27 @@ This project was inspired by https://github.com/ThePrimeagen/99, but I chose to 
 
 ### CLI (`cli/`)
 
-- `ask`: interactive or CLI arguments, model selection, save to markdown, optional history
-- `explain`: file/dir/stdin inputs, language detection, optional context, save to markdown, history export
-- `tutor`: input validation, separate validation/generation models, save to markdown, history
-- `ctx-edit`: edit selected context from file/lines or stdin, optional in-place write, JSON output
-- `gitmessage`: staged diff summary, optional hint/prefix, copy to clipboard, history
-- `history`: list/filter entries and export to markdown
-
-Examples:
-
-```sh
-ask "what is a closure"
-ask --history -m openai/gpt-5.2-codex "explain rust lifetimes"
-
-explain main.go
-explain ./internal/agent --save
-pbpaste | explain --lang go
-
-tutor "how does git rebase work"
-tutor --save --validation-model openai/gpt-4o --generation-model openai/o1 "how to use ffmpeg"
-
-ctx-edit -p "rename foo to bar" -c "const foo = 1"
-ctx-edit -p "add error handling" -f main.go --start 12 --end 24 --write
-
-gitmessage feat -c
-gitmessage -i "focus on perf" fix
-
-shistory list --command ask
-shistory export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
-```
+- `ask` - quick questions and brainstorming
+- `explain` - code walk-throughs from files, dirs, or stdin
+- `tutor` - step-by-step learning and tutorials
+- `ctx-edit` - targeted edits on a scoped snippet
+- `gitmessage` - commit message drafts from staged changes
+- `shistory` - browse and export past runs
 
 ### Neovim plugin (`nvim/`)
 
-- Commands for `SpicyAsk` and `SpicyCtxEdit` with visual selection support
+- Commands for `SpicyAsk`, `SpicyExplain`, `SpicyTutor`, `SpicyGitmessage`, and `SpicyCtxEdit`
 - Configurable models and UI output modes (float/buffer/split)
 - CLI-backed execution with built-in history saving
 - Health check integration (`:checkhealth spicy`)
-
-Examples:
-
-```vim
-:SpicyAsk what is a closure in JavaScript
-:'<,'>SpicyAsk explain this selection
-:'<,'>SpicyCtxEdit
-```
+- See `nvim/README.md` for setup and usage
 
 ### Hammerspoon module (`hammerspoon/`)
 
-- Hotkeys to run `ask` in iTerm or fetch output into Sublime
-- History browser with inline previews
-- Keyboard navigation + delete entries (backspace/delete or Ctrl+D)
+- Hotkeys to run `ask` in iTerm or open results in Sublime Text
+- History browser with inline previews and delete shortcuts
 - Lightweight spinner UI while running `ask`
-
-Examples:
-
-- `alt+shift+A` -> prompt, run `ask` in a new iTerm window
-- `alt+shift+S` -> prompt, run `ask`, open response in Sublime
-- Use arrow keys to select history, press `Ctrl+D` to delete
+- See `hammerspoon/README.md` for setup and usage
 
 ## CLI
 
@@ -92,7 +56,7 @@ make -C cli install-all
 You can run installs from any directory with:
 
 ```sh
-make -C /path/to/spicy/cli install-all
+make install-all
 ```
 
 Ensure your shell `PATH` includes `~/.local/bin` (default install target):

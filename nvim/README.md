@@ -8,9 +8,9 @@
 
 - ✅ **SpicyAsk**: Ask questions and get AI-powered answers
 - ✅ **SpicyCtxEdit**: Edit a visual selection with AI
-- 🚧 **SpicyTutor**: Generate detailed tutorials (coming soon)
-- 🚧 **SpicyExplain**: Explain code with AI (coming soon)
-- 🚧 **SpicyGitmessage**: Generate commit messages (coming soon)
+- ✅ **SpicyTutor**: Generate detailed tutorials
+- ✅ **SpicyExplain**: Explain code with AI
+- ✅ **SpicyGitmessage**: Generate commit messages
 
 ## Prerequisites
 
@@ -137,6 +137,35 @@ Edit a visual selection using an instruction prompt.
 ```vim
 " Select code in visual mode, then:
 :'<,'>SpicyCtxEdit
+```
+
+### :SpicyExplain
+
+Explain the current file or a visual selection.
+
+```vim
+" Explain current buffer
+:SpicyExplain
+
+" Explain a visual selection
+:'<,'>SpicyExplain
+```
+
+### :SpicyTutor
+
+Generate a tutorial from a topic.
+
+```vim
+:SpicyTutor how to use git rebase
+```
+
+### :SpicyGitmessage
+
+Generate a commit message from staged changes.
+
+```vim
+:SpicyGitmessage
+:SpicyGitmessage feat add caching
 ```
 
 ## Health Check
