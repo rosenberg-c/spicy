@@ -34,6 +34,20 @@ func main() {
 				Action: listAction,
 			},
 			{
+				Name:      "cat",
+				Usage:     "Print a history entry by index",
+				ArgsUsage: "<index>",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "command",
+						Aliases: []string{"c"},
+						Usage: "Filter by command " +
+							"(ask, explain, tutor, gitmessage)",
+					},
+				},
+				Action: catAction,
+			},
+			{
 				Name:  "export",
 				Usage: "Export history entries to markdown",
 				Flags: []cli.Flag{
@@ -133,6 +147,43 @@ func listAction(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
+func catAction(ctx context.Context, cmd *cli.Command) error {
+	commandFilter := cmd.String("command")
+	indexArg := strings.TrimSpace(cmd.Args().First())
+	if indexArg == "" {
+		return fmt.Errorf("missing index (e.g., shistory cat 1)")
+	}
+
+	index, err := strconv.Atoi(indexArg)
+	if err != nil {
+		return fmt.Errorf("invalid index: %w", err)
+	}
+	if index < 1 {
+		return fmt.Errorf("index must be >= 1")
+	}
+
+	entries, err := listEntries(commandFilter)
+	if err != nil {
+		return err
+	}
+	if len(entries) == 0 {
+		if commandFilter != "" {
+			fmt.Printf("No history found for command: %s\n", commandFilter)
+			return nil
+		}
+		fmt.Println("No history found")
+		return nil
+	}
+	if index > len(entries) {
+		return fmt.Errorf("index out of range (1-%d)", len(entries))
+	}
+
+	entry := entries[index-1]
+	markdown := formatEntryAsMarkdown(&entry)
+	fmt.Println(markdown)
+	return nil
+}
+
 func exportAction(ctx context.Context, cmd *cli.Command) error {
 	commandFilter := cmd.String("command")
 	fileFilter := cmd.String("file")
@@ -176,30 +227,9 @@ func exportFile(filePath string, outputPath string) error {
 }
 
 func exportInteractive(commandFilter string, outputPath string) error {
-	var entries []history.Entry
-	var err error
-
-	if commandFilter != "" {
-		entries, err = history.List(commandFilter)
-		if err != nil {
-			return fmt.Errorf("list history: %w", err)
-		}
-	} else {
-		// Get all entries from all commands
-		allEntries, err := history.ListAll()
-		if err != nil {
-			return fmt.Errorf("list all history: %w", err)
-		}
-
-		// Flatten into a single slice
-		for _, cmdEntries := range allEntries {
-			entries = append(entries, cmdEntries...)
-		}
-
-		// Sort by timestamp
-		sort.Slice(entries, func(i, j int) bool {
-			return entries[i].Timestamp > entries[j].Timestamp
-		})
+	entries, err := listEntries(commandFilter)
+	if err != nil {
+		return err
 	}
 
 	if len(entries) == 0 {
@@ -266,6 +296,32 @@ func exportInteractive(commandFilter string, outputPath string) error {
 
 	fmt.Printf("Exported to: %s\n", finalPath)
 	return nil
+}
+
+func listEntries(commandFilter string) ([]history.Entry, error) {
+	if commandFilter != "" {
+		entries, err := history.List(commandFilter)
+		if err != nil {
+			return nil, fmt.Errorf("list history: %w", err)
+		}
+		return entries, nil
+	}
+
+	allEntries, err := history.ListAll()
+	if err != nil {
+		return nil, fmt.Errorf("list all history: %w", err)
+	}
+
+	var entries []history.Entry
+	for _, cmdEntries := range allEntries {
+		entries = append(entries, cmdEntries...)
+	}
+
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Timestamp > entries[j].Timestamp
+	})
+
+	return entries, nil
 }
 
 func capitalize(s string) string {
