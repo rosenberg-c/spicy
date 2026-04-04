@@ -47,6 +47,7 @@ function M.gitmessage(opts)
   return gitmessage.gitmessage(opts)
 end
 
+
 --- Update selection with v-edit
 --- @param opts table|nil Options
 function M.ctx_edit(opts)

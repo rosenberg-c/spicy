@@ -96,6 +96,7 @@ end, {
   desc = "Generate git commit message using spicy AI",
 })
 
+
 -- SpicyCtxEdit command
 vim.api.nvim_create_user_command("SpicyCtxEdit", function(opts)
   local commands = require("spicy.commands")

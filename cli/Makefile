@@ -28,14 +28,14 @@ help:
 	"  make build-gitmessage - build gitmessage only" \
 	"  make build-explain    - build explain only" \
 	"  make build-ask        - build ask only" \
-	"  make build-history    - build history only" \
+	"  make build-history    - build record only" \
 	"  make build-v-edit     - build v-edit only" \
 	"  make install-all      - install all commands to $(INSTALL_DIR)" \
 	"  make install-tutor    - install tutor only" \
 	"  make install-gitmessage - install gitmessage only" \
 	"  make install-explain  - install explain only" \
 	"  make install-ask      - install ask only" \
-	"  make install-history  - install history only" \
+	"  make install-history  - install record only" \
 	"  make install-v-edit   - install v-edit only" \
 	"  make clean            - remove all built binaries"
 
@@ -75,7 +75,7 @@ build-ask:
 
 build-history:
 	@mkdir -p "$(BINDIR)"
-	$(GO) build -o "$(BINDIR)/shistory" ./cmd/history
+	$(GO) build -o "$(BINDIR)/record" ./cmd/history
 
 build-v-edit:
 	@mkdir -p "$(BINDIR)"
@@ -91,13 +91,15 @@ install-all: build-all
 	rm -f "$(INSTALL_DIR)/explain"
 	rm -f "$(INSTALL_DIR)/ask"
 	rm -f "$(INSTALL_DIR)/shistory"
+	rm -f "$(INSTALL_DIR)/spicy-record"
+	rm -f "$(INSTALL_DIR)/record"
 	rm -f "$(INSTALL_DIR)/ctx-edit"
 	rm -f "$(INSTALL_DIR)/v-edit"
 	cp "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
 	cp "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
 	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
 	cp "$(BINDIR)/ask" "$(INSTALL_DIR)/ask"
-	cp "$(BINDIR)/shistory" "$(INSTALL_DIR)/shistory"
+	cp "$(BINDIR)/record" "$(INSTALL_DIR)/record"
 	cp "$(BINDIR)/v-edit" "$(INSTALL_DIR)/v-edit"
 
 # Alias for install-all
@@ -127,7 +129,9 @@ install-ask: build-ask
 install-history: build-history
 	@mkdir -p "$(INSTALL_DIR)"
 	rm -f "$(INSTALL_DIR)/shistory"
-	cp "$(BINDIR)/shistory" "$(INSTALL_DIR)/shistory"
+	rm -f "$(INSTALL_DIR)/spicy-record"
+	rm -f "$(INSTALL_DIR)/record"
+	cp "$(BINDIR)/record" "$(INSTALL_DIR)/record"
 
 install-v-edit: build-v-edit
 	@mkdir -p "$(INSTALL_DIR)"

@@ -168,6 +168,7 @@ Generate a commit message from staged changes.
 :SpicyGitmessage feat add caching
 ```
 
+
 ## Health Check
 
 Run health check to verify installation:

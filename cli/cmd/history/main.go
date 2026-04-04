@@ -17,7 +17,7 @@ import (
 
 func main() {
 	cmd := &cli.Command{
-		Name:  "history",
+		Name:  "record",
 		Usage: "Manage and export command history",
 		Commands: []*cli.Command{
 			{
@@ -151,7 +151,7 @@ func catAction(ctx context.Context, cmd *cli.Command) error {
 	commandFilter := cmd.String("command")
 	indexArg := strings.TrimSpace(cmd.Args().First())
 	if indexArg == "" {
-		return fmt.Errorf("missing index (e.g., shistory cat 1)")
+		return fmt.Errorf("missing index (e.g., record cat 1)")
 	}
 
 	index, err := strconv.Atoi(indexArg)

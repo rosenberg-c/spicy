@@ -57,7 +57,7 @@ pbpaste | v-edit -p "make this more concise" -c -
 v-edit -p "convert to for-range" -f main.go --start 10 --end 18 --write
 ```
 
-### ✅ history - History Manager
+### ✅ record - History Manager
 Browse and export command history to markdown files.
 
 All commands support `--history` flag to save execution history to `.spicy/`
@@ -70,12 +70,12 @@ tutor --history "How to use git rebase"
 gitmessage --history
 
 # Browse, view, and export history
-shistory list                          # List all history entries
-shistory list --command ask            # List history for specific command
-shistory cat 1                         # Print entry by index
-shistory cat 1 --command ask           # Print entry by index for a command
-shistory export                        # Interactive export to markdown
-shistory export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
+record list                          # List all history entries
+record list --command ask            # List history for specific command
+record cat 1                         # Print entry by index
+record cat 1 --command ask           # Print entry by index for a command
+record export                        # Interactive export to markdown
+record export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 ```
 
 ## Default behavior
@@ -85,9 +85,9 @@ shistory export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 - `tutor`: prompts if no args, prints tutorial to stdout
 - `v-edit`: requires prompt+context or file+range, prints updated text to stdout
 - `gitmessage`: reads staged diff, prints message to stdout
-- `shistory list`: prints entries (if any)
-- `shistory cat`: prints entry markdown to stdout
-- `shistory export`: interactive unless `--file`, writes markdown file
+- `record list`: prints entries (if any)
+- `record cat`: prints entry markdown to stdout
+- `record export`: interactive unless `--file`, writes markdown file
 
 ## Installation
 

@@ -53,6 +53,7 @@ function M.gitmessage(opts)
   return commands.gitmessage(opts)
 end
 
+
 --- Update selection with v-edit
 --- @param opts table|nil Optional configuration
 function M.ctx_edit(opts)

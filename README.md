@@ -28,7 +28,7 @@ This project was inspired by https://github.com/ThePrimeagen/99, but I chose to 
 - `tutor` - step-by-step learning and tutorials
 - `v-edit` - targeted edits on a scoped snippet
 - `gitmessage` - commit message drafts from staged changes
-- `shistory` - browse and export past runs
+- `record` - browse and export past runs
 
 ### Neovim plugin (`nvim/`)
 
