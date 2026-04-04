@@ -60,7 +60,7 @@ make -C cli install-all
 You can run installs from any directory with:
 
 ```sh
-make install-all
+make -C /path/to/spicy install
 ```
 
 Ensure your shell `PATH` includes `~/.local/bin` (default install target):
