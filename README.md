@@ -1,6 +1,7 @@
 # Spicy
 
-This repo contains the core tooling and editor/automation integrations:
+This repo contains the core tooling and editor/automation integrations. The
+CLI tools are built on the `opencode` API.
 
 Note: This is an alpha release and is prone to change. Since this repo is
 focused on tools around AI, expect changes as I explore how I work with AI.
