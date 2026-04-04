@@ -26,7 +26,7 @@ This project was inspired by https://github.com/ThePrimeagen/99, but I chose to 
 - `ask` - quick questions and brainstorming
 - `explain` - code walk-throughs from files, dirs, or stdin
 - `tutor` - step-by-step learning and tutorials
-- `ctx-edit` - targeted edits on a scoped snippet
+- `v-edit` - targeted edits on a scoped snippet
 - `gitmessage` - commit message drafts from staged changes
 - `shistory` - browse and export past runs
 

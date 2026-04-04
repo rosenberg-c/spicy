@@ -24,7 +24,7 @@ type selection struct {
 
 func main() {
 	cmd := &cli.Command{
-		Name:  "ctx-edit",
+		Name:  "v-edit",
 		Usage: "Update a selected code context using a prompt",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -71,13 +71,13 @@ func main() {
 			},
 		},
 		ArgsUsage: "[prompt...]",
-		UsageText: `ctx-edit [options] [prompt...]
+		UsageText: `v-edit [options] [prompt...]
 
 EXAMPLES:
-   ctx-edit -p "rename foo to bar" -c "const foo = 1"
-   ctx-edit -p "add error handling" -f main.go --start 12 --end 24
-   pbpaste | ctx-edit -p "make this more concise" -c -
-   ctx-edit -p "convert to for-range" -f main.go --start 10 --end 18 --write`,
+   v-edit -p "rename foo to bar" -c "const foo = 1"
+   v-edit -p "add error handling" -f main.go --start 12 --end 24
+   pbpaste | v-edit -p "make this more concise" -c -
+   v-edit -p "convert to for-range" -f main.go --start 10 --end 18 --write`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			runCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 			defer cancel()

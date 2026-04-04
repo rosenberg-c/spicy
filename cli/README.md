@@ -47,14 +47,14 @@ To keep the previous default (prompt + save), define an alias:
 alias explain-save='explain --save'
 ```
 
-### ✅ ctx-edit - Context Editor
+### ✅ v-edit - Visual Editor
 Update a selected code context based on a prompt.
 
 ```sh
-ctx-edit -p "rename foo to bar" -c "const foo = 1"
-ctx-edit -p "add error handling" -f main.go --start 12 --end 24
-pbpaste | ctx-edit -p "make this more concise" -c -
-ctx-edit -p "convert to for-range" -f main.go --start 10 --end 18 --write
+v-edit -p "rename foo to bar" -c "const foo = 1"
+v-edit -p "add error handling" -f main.go --start 12 --end 24
+pbpaste | v-edit -p "make this more concise" -c -
+v-edit -p "convert to for-range" -f main.go --start 10 --end 18 --write
 ```
 
 ### ✅ history - History Manager
@@ -83,7 +83,7 @@ shistory export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 - `ask`: prompts if no args, prints answer to stdout
 - `explain`: reads file/dir/stdin, prints explanation to stdout
 - `tutor`: prompts if no args, prints tutorial to stdout
-- `ctx-edit`: requires prompt+context or file+range, prints updated text to stdout
+- `v-edit`: requires prompt+context or file+range, prints updated text to stdout
 - `gitmessage`: reads staged diff, prints message to stdout
 - `shistory list`: prints entries (if any)
 - `shistory cat`: prints entry markdown to stdout
@@ -129,7 +129,7 @@ cli/
 │   ├── tutor/       # Tutorial generator
 │   ├── gitmessage/  # Commit message generator
 │   ├── explain/     # Code explainer
-│   ├── ctx-edit/    # Context editor
+│   ├── ctx-edit/    # v-edit command
 │   └── history/     # History manager
 ├── internal/
 │   ├── agent/       # OpenCode agent integration

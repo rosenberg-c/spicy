@@ -13,7 +13,7 @@ local DEFAULT_CONFIG = {
     tutor = "tutor",
     explain = "explain",
     gitmessage = "gitmessage",
-    ctx_edit = "ctx-edit",
+    ctx_edit = "v-edit",
   },
 
   -- Default models for each command

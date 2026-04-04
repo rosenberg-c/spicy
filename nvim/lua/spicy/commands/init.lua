@@ -47,14 +47,14 @@ function M.gitmessage(opts)
   return gitmessage.gitmessage(opts)
 end
 
---- Update selection with ctx-edit
+--- Update selection with v-edit
 --- @param opts table|nil Options
 function M.ctx_edit(opts)
   local ctx_edit = require("spicy.commands.ctx_edit")
   return ctx_edit.ctx_edit(opts)
 end
 
---- Update visual selection with ctx-edit
+--- Update visual selection with v-edit
 --- @param opts table|nil Options
 function M.ctx_edit_visual(opts)
   local ctx_edit = require("spicy.commands.ctx_edit")

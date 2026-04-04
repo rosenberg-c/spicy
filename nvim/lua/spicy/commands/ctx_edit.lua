@@ -12,7 +12,7 @@ local cli = require("spicy.utils.cli")
 local inline_spinner = require("spicy.utils.inline_spinner")
 local jsonutil = require("spicy.utils.json")
 
---- Build the spicy ctx-edit command
+--- Build the spicy v-edit command
 --- @param prompt string Instruction for update
 --- @param context string Selected context
 --- @param opts table|nil Options (model, verbose)
@@ -20,7 +20,7 @@ local jsonutil = require("spicy.utils.json")
 local function build_command(prompt, context, opts)
   opts = opts or {}
 
-  local bin = config.get("bin.ctx_edit") or "ctx-edit"
+  local bin = config.get("bin.ctx_edit") or "v-edit"
   local args = cli.base_args("ctx_edit", opts, false)
 
   -- JSON output for reliable parsing
@@ -58,7 +58,7 @@ local function apply_update(range, updated_text)
   )
 end
 
---- Execute ctx-edit command
+--- Execute v-edit command
 --- @param prompt string Instruction for update
 --- @param selection string Selected context
 --- @param range table Range info (bufnr, start_line, end_line)
@@ -107,7 +107,7 @@ function M.execute(prompt, selection, range, opts, callback)
       if code ~= 0 then
         local err_msg = table.concat(stderr, "\n")
         helpers.error(
-          ("ctx-edit failed (exit code %d): %s"):format(code, err_msg)
+          ("v-edit failed (exit code %d): %s"):format(code, err_msg)
         )
         if callback then
           callback(nil, err_msg)
@@ -122,9 +122,9 @@ function M.execute(prompt, selection, range, opts, callback)
     local payload, err = jsonutil.decode_loose(raw_output)
     if err then
       if config.get("verbose") and raw_output ~= "" then
-        helpers.info("ctx-edit raw stdout: " .. raw_output)
+          helpers.info("v-edit raw stdout: " .. raw_output)
       end
-      helpers.error("Failed to parse ctx-edit output: " .. err)
+        helpers.error("Failed to parse v-edit output: " .. err)
       if callback then
         callback(nil, err)
       end
@@ -133,7 +133,7 @@ function M.execute(prompt, selection, range, opts, callback)
 
     if not payload.updated_text then
       local err_msg = "missing updated_text in response"
-      helpers.error("Failed to parse ctx-edit output: " .. err_msg)
+      helpers.error("Failed to parse v-edit output: " .. err_msg)
       if callback then
         callback(nil, err_msg)
       end
@@ -142,7 +142,7 @@ function M.execute(prompt, selection, range, opts, callback)
 
       local updated_text = payload.updated_text
       if helpers.trim(updated_text) == "" then
-        helpers.warn("ctx-edit returned empty update")
+        helpers.warn("v-edit returned empty update")
         if callback then
           callback(nil, "empty update")
         end
@@ -163,7 +163,7 @@ function M.execute(prompt, selection, range, opts, callback)
           inline_spinner.stop()
         end)
       end
-      helpers.error("ctx-edit timed out")
+      helpers.error("v-edit timed out")
       if callback then
         callback(nil, "timeout")
       end
@@ -171,7 +171,7 @@ function M.execute(prompt, selection, range, opts, callback)
   })
 end
 
---- Update selection with ctx-edit (main entry point)
+--- Update selection with v-edit (main entry point)
 --- @param opts table|nil Options:
 ---   - range: {start_line, end_line}
 ---   - buffer: number
@@ -229,7 +229,7 @@ function M.ctx_edit(opts)
   end)
 end
 
---- Update visual selection with ctx-edit
+--- Update visual selection with v-edit
 --- @param opts table|nil Options
 function M.ctx_edit_visual(opts)
   opts = opts or {}
