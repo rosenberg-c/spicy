@@ -1,6 +1,9 @@
-# Spicy Monorepo
+# Spicy
 
 This repo contains the core tooling and editor/automation integrations:
+
+Note: This is an alpha release and is prone to change. Since this repo is
+focused on tools around AI, expect changes as I explore how I work with AI.
 
 - `cli/` - The Spicy CLI tools (Go)
 - `nvim/` - The spicy.nvim Neovim plugin
