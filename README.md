@@ -5,6 +5,7 @@ CLI tools are built on the `opencode` API.
 
 Note: This is an alpha release and is prone to change. Since this repo is
 focused on tools around AI, expect changes as I explore how I work with AI.
+
 I believe in learning and understanding the code we write; that drive is what pushed
 this tooling suite forward, especially `tutor` and `explain`.
 
