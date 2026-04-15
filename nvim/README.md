@@ -76,11 +76,11 @@ Basic setup:
 require("spicy").setup({
   -- Models
   models = {
-    ask = "openai/gpt-5.2-codex",
-    tutor = "openai/gpt-5.2-codex",
-    explain = "openai/gpt-5.2-codex",
-    gitmessage = "openai/gpt-5.2-codex",
-    ctx_edit = "openai/gpt-5.2-codex",
+    ask = "openai/gpt-5.3-codex",
+    tutor = "openai/gpt-5.3-codex",
+    explain = "openai/gpt-5.3-codex",
+    gitmessage = "openai/gpt-5.3-codex",
+    ctx_edit = "openai/gpt-5.3-codex",
   },
 
   -- UI settings
@@ -112,6 +112,14 @@ vim.keymap.set("n", "<leader>st", "<cmd>SpicyTutor<CR>", { desc = "Spicy: Tutor"
 vim.keymap.set("n", "<leader>sg", "<cmd>SpicyGitmessage<CR>", { desc = "Spicy: Git message" })
 vim.keymap.set("v", "<leader>sc", ":'<,'>SpicyCtxEdit<CR>", { desc = "Spicy: Edit selection" })
 ```
+
+Model resolution order is:
+
+1. command option (`opts.model`)
+2. `SPICY_MODEL` environment variable
+3. local `.env` (`$PWD/.env`)
+4. home config `.env` (`~/.config/spicy/.env`)
+5. plugin `models.<command>` config
 
 ## Commands
 

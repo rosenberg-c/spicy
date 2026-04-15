@@ -14,11 +14,11 @@ require("spicy").setup({
 
 	-- Default models for each command
 	models = {
-		ask = "openai/gpt-5.2-codex",
-		tutor = "openai/gpt-5.2-codex",
-		explain = "openai/gpt-5.2-codex",
-		gitmessage = "openai/gpt-5.2-codex",
-		ctx_edit = "openai/gpt-5.2-codex",
+		ask = "openai/gpt-5.3-codex",
+		tutor = "openai/gpt-5.3-codex",
+		explain = "openai/gpt-5.3-codex",
+		gitmessage = "openai/gpt-5.3-codex",
+		ctx_edit = "openai/gpt-5.3-codex",
 	},
 
 	-- UI configuration per command

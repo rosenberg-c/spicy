@@ -22,7 +22,7 @@ vim.opt.rtp:append(plenary_path)
 require("spicy").setup({
   -- Test config
   models = {
-    ask = "openai/gpt-5.2-codex",
+    ask = "openai/gpt-5.3-codex",
   },
   keymaps = {
     enabled = true,

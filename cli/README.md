@@ -89,6 +89,32 @@ record export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 - `record cat`: prints entry markdown to stdout
 - `record export`: interactive unless `--file`, writes markdown file
 
+## Model configuration
+
+Set a default model for all commands with `SPICY_MODEL`.
+
+Environment variable takes highest priority:
+
+```sh
+export SPICY_MODEL=openai/gpt-5.3-codex
+```
+
+You can also set it in a local `.env` file in the current working directory:
+
+```sh
+SPICY_MODEL=openai/gpt-5.3-codex
+```
+
+Or set a home-level default in `~/.config/spicy/.env`:
+
+```sh
+SPICY_MODEL=openai/gpt-5.3-codex
+```
+
+Precedence is: environment variable -> local `.env` -> `~/.config/spicy/.env` -> built-in default.
+
+If no value is provided, the CLI defaults to `openai/gpt-5.3-codex`.
+
 ## Installation
 
 ### Build all tools
