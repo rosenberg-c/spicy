@@ -9,12 +9,12 @@ BINDIR ?= bin
 INSTALL_DIR ?= $(HOME)/.local/bin
 
 # Commands to build
-CMDS := tutor gitmessage explain ask history v-edit
+CMDS := tutor gitmessage explain ask history v-edit askwrapper
 
 .PHONY: help fmt vet test check build build-all clean install install-all
-.PHONY: build-tutor build-gitmessage build-explain build-ask build-history build-v-edit build-ctx-edit
+.PHONY: build-tutor build-gitmessage build-explain build-ask build-history build-v-edit build-ctx-edit build-askwrapper
 .PHONY: install-tutor install-gitmessage install-explain install-ask
-.PHONY: install-history install-v-edit install-ctx-edit
+.PHONY: install-history install-v-edit install-ctx-edit install-askwrapper
 
 help:
 	@printf "%s\n" \
@@ -30,6 +30,7 @@ help:
 	"  make build-ask        - build ask only" \
 	"  make build-history    - build record only" \
 	"  make build-v-edit     - build v-edit only" \
+	"  make build-askwrapper - build askwrapper only" \
 	"  make install-all      - install all commands to $(INSTALL_DIR)" \
 	"  make install-tutor    - install tutor only" \
 	"  make install-gitmessage - install gitmessage only" \
@@ -37,6 +38,7 @@ help:
 	"  make install-ask      - install ask only" \
 	"  make install-history  - install record only" \
 	"  make install-v-edit   - install v-edit only" \
+	"  make install-askwrapper - install askwrapper only" \
 	"  make clean            - remove all built binaries"
 
 fmt:
@@ -51,7 +53,7 @@ test:
 check: vet test
 
 # Build all commands
-build-all: build-tutor build-gitmessage build-explain build-ask build-history build-v-edit
+build-all: build-tutor build-gitmessage build-explain build-ask build-history build-v-edit build-askwrapper
 
 # Alias for build-all
 build: build-all
@@ -81,6 +83,10 @@ build-v-edit:
 	@mkdir -p "$(BINDIR)"
 	$(GO) build -o "$(BINDIR)/v-edit" ./cmd/ctx-edit
 
+build-askwrapper:
+	@mkdir -p "$(BINDIR)"
+	$(GO) build -o "$(BINDIR)/askwrapper" ./cmd/askwrapper
+
 build-ctx-edit: build-v-edit
 
 # Install all commands
@@ -95,12 +101,14 @@ install-all: build-all
 	rm -f "$(INSTALL_DIR)/record"
 	rm -f "$(INSTALL_DIR)/ctx-edit"
 	rm -f "$(INSTALL_DIR)/v-edit"
+	rm -f "$(INSTALL_DIR)/askwrapper"
 	cp "$(BINDIR)/tutor" "$(INSTALL_DIR)/tutor"
 	cp "$(BINDIR)/gitmessage" "$(INSTALL_DIR)/gitmessage"
 	cp "$(BINDIR)/explain" "$(INSTALL_DIR)/explain"
 	cp "$(BINDIR)/ask" "$(INSTALL_DIR)/ask"
 	cp "$(BINDIR)/record" "$(INSTALL_DIR)/record"
 	cp "$(BINDIR)/v-edit" "$(INSTALL_DIR)/v-edit"
+	cp "$(BINDIR)/askwrapper" "$(INSTALL_DIR)/askwrapper"
 
 # Alias for install-all
 install: install-all
@@ -138,6 +146,11 @@ install-v-edit: build-v-edit
 	rm -f "$(INSTALL_DIR)/ctx-edit"
 	rm -f "$(INSTALL_DIR)/v-edit"
 	cp "$(BINDIR)/v-edit" "$(INSTALL_DIR)/v-edit"
+
+install-askwrapper: build-askwrapper
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/askwrapper"
+	cp "$(BINDIR)/askwrapper" "$(INSTALL_DIR)/askwrapper"
 
 install-ctx-edit: install-v-edit
 

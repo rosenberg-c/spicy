@@ -65,27 +65,18 @@ local function appendHistoryEntry(question, answer)
 	saveHistory(history)
 end
 
--- Terminal version (iTerm)
-local askChooser = nil
-
-local function runAskInITerm(query)
-	if not query or query == "" then
-		return
-	end
-
-	local escaped = shellQuote(query)
-
+-- Terminal launcher (iTerm)
+local function runAskWrapperUIInITerm()
 	local applescript = string.format(
 		[[
     tell application "iTerm"
       activate
       create window with default profile
       tell current session of current window
-        write text "clear && ask %s"
+	        write text "clear && askwrapper ui ask"
       end tell
     end tell
-  ]],
-		escaped
+	  ]]
 	)
 
 	hs.osascript.applescript(applescript)
@@ -256,12 +247,7 @@ local function createAskChooserWithHistory(onSubmitNew, onSubmitHistory, subText
 end
 
 local function showAskBox()
-	if not askChooser then
-		askChooser = createAskChooser(runAskInITerm, "Press Enter to run ask in a new iTerm window. Esc to cancel.")
-	end
-
-	askChooser:query("")
-	askChooser:show()
+	runAskWrapperUIInITerm()
 end
 
 local function setupAskInITerm()

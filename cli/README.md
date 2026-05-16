@@ -78,6 +78,20 @@ record export                        # Interactive export to markdown
 record export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 ```
 
+### ✅ askwrapper - Interactive Ask Wrapper
+Run an interactive ask flow with local history preview stored in
+`~/.askwrapper/history.json`.
+
+```sh
+askwrapper ui ask
+```
+
+In the prompt:
+
+- Type a question and press Enter to run `ask`
+- Type `:N` (example `:1`) to preview history entry `N`
+- Press Enter on empty input to cancel
+
 ## Default behavior
 
 - `ask`: prompts if no args, prints answer to stdout
