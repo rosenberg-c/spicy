@@ -1,14 +1,11 @@
 # Spicy Hammerspoon Module
 
-Hotkeys for running `ask` from Hammerspoon, with a lightweight history browser
-and optional Sublime Text output.
+Hotkeys for launching the Go-native `askwrapper` UI flows from Hammerspoon.
 
 ## Requirements
 
 - Hammerspoon
-- Spicy CLI in your `PATH` (`ask` command)
-- iTerm (for the terminal hotkey)
-- Sublime Text + `subl` on your `PATH` (for the Sublime hotkey)
+- Spicy CLI in your `PATH` (`askwrapper` and `ask` commands)
 
 ## Setup
 
@@ -26,20 +23,14 @@ Reload Hammerspoon after saving.
 
 ## Hotkeys
 
-- `alt+shift+A` - prompt, run `ask` in a new iTerm window
-- `alt+shift+S` - prompt, run `ask`, open the response in Sublime Text
+- `alt+shift+A` - launch `askwrapper ui ask` directly
+- `alt+shift+S` - launch `askwrapper ui followup` directly
 
 ## History
 
-History is stored at `~/.askwrapper/history.json`.
-
-In the Sublime picker:
-
-- arrow keys navigate history
-- `backspace`, `delete`, or `Ctrl+D` removes the selected entry
+History is stored at `~/.askwrapper/history.json` and managed by the Go UI.
 
 ## Notes
 
-- The Sublime integration looks for `subl` in common locations and will warn
-  if it cannot be found.
-- The module runs `ask` via your shell, so your normal CLI auth applies.
+- Hammerspoon is only responsible for hotkeys + launching askwrapper.
+- All ask/follow-up UI behavior now lives in the Go `askwrapper` command.

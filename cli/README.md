@@ -78,6 +78,50 @@ record export                        # Interactive export to markdown
 record export --file .spicy/ask/20260317-134703_ask_what-is-docker.json
 ```
 
+### ✅ askwrapper - Interactive Ask Wrapper
+Run an interactive ask flow with local history preview stored in
+`~/.askwrapper/history.json`.
+
+```sh
+askwrapper ui ask
+askwrapper ui followup
+```
+
+In the prompt:
+
+- Type a question and press Enter to run `ask`
+- Type `:N` (example `:1`) to preview history entry `N`
+- Type `:dN` (example `:d1`) to delete history entry `N`
+- Press Enter on empty input to cancel
+
+Follow-up mode:
+
+- Pick a previous history entry as context
+- Ask a new question using that context with `askwrapper ui followup`
+
+Build options:
+
+- Default terminal UI build: `make install-askwrapper`
+- Gio desktop UI build: `make install-askwrapper-gio`
+
+Linux Gio dependencies (Debian/Ubuntu):
+
+```sh
+sudo apt update
+sudo apt install -y \
+  pkg-config \
+  libx11-dev \
+  libxkbcommon-dev \
+  libxkbcommon-x11-dev \
+  libx11-xcb-dev \
+  libxcursor-dev \
+  libxfixes-dev \
+  libwayland-dev \
+  libvulkan-dev \
+  libegl1-mesa-dev \
+  libgl1-mesa-dev
+```
+
 ## Default behavior
 
 - `ask`: prompts if no args, prints answer to stdout
