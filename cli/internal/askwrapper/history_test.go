@@ -3,10 +3,12 @@ package askwrapper
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 func TestLoadHistory_EmptyWhenMissing(t *testing.T) {
+	// @req CLI-ASKWRAPPER-003
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
@@ -20,6 +22,8 @@ func TestLoadHistory_EmptyWhenMissing(t *testing.T) {
 }
 
 func TestAppendHistory_PrependsAndPersists(t *testing.T) {
+	// @req CLI-ASKWRAPPER-003
+	// @req CLI-ASKWRAPPER-004
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
@@ -80,5 +84,30 @@ func TestAppendHistory_EmptyQuestionNoWrite(t *testing.T) {
 	}
 	if len(entries) != 0 {
 		t.Fatalf("LoadHistory() len = %d, want 0", len(entries))
+	}
+}
+
+func TestLoadHistory_InvalidJSONReturnsError(t *testing.T) {
+	// @req CLI-ASKWRAPPER-003
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	path, err := HistoryPath()
+	if err != nil {
+		t.Fatalf("HistoryPath() error = %v", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(path, []byte("{invalid json"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	_, err = LoadHistory()
+	if err == nil {
+		t.Fatal("LoadHistory() error = nil, want parse error")
+	}
+	if !strings.Contains(err.Error(), "parse history") {
+		t.Fatalf("LoadHistory() error = %q, want to contain %q", err.Error(), "parse history")
 	}
 }

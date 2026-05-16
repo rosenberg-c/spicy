@@ -1,108 +1,202 @@
+//go:build gio
+
 package askwrapperui
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
+	"image/color"
+	"runtime"
 	"time"
 
 	"module/lib/internal/askwrapper"
+
+	"gioui.org/app"
+	"gioui.org/font/gofont"
+	"gioui.org/io/key"
+	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/text"
+	"gioui.org/unit"
+	"gioui.org/widget"
+	"gioui.org/widget/material"
 )
 
+type askResult struct {
+	question   string
+	answer     string
+	runErr     error
+	historyErr error
+}
+
+var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+
+func init() {
+	if runtime.GOOS == "darwin" {
+		spinnerFrames = []string{"-", "\\", "|", "/"}
+	}
+}
+
+type askUI struct {
+	timeout time.Duration
+
+	history       []askwrapper.HistoryEntry
+	historyClicks []widget.Clickable
+	historyDelete []widget.Clickable
+	historyList   widget.List
+	previewList   widget.List
+	selected      int
+	modeFollowUp  bool
+
+	question widget.Editor
+	submit   widget.Clickable
+	modeEnum widget.Enum
+
+	running   bool
+	preview   string
+	status    string
+	runCancel context.CancelFunc
+
+	resultCh              chan askResult
+	focusInputOnNextFrame bool
+	focusDeleteIndex       int
+}
+
 func RunAskMode(ctx context.Context, timeout time.Duration) error {
+	return runUIMode(ctx, timeout, false)
+}
+
+func RunFollowUpMode(ctx context.Context, timeout time.Duration) error {
+	return runUIMode(ctx, timeout, true)
+}
+
+func runUIMode(ctx context.Context, timeout time.Duration, followUp bool) error {
 	history, err := askwrapper.LoadHistory()
 	if err != nil {
 		return fmt.Errorf("load history: %w", err)
 	}
+	if followUp && len(history) == 0 {
+		return fmt.Errorf("no askwrapper history yet")
+	}
 
-	printHistory(history)
+	ui := newAskUI(history, timeout, followUp)
 
-	reader := bufio.NewReader(os.Stdin)
+	goErr := make(chan error, 1)
+	go func() {
+		w := new(app.Window)
+		w.Option(
+			app.Title(ui.windowTitle()),
+			app.Size(unit.Dp(760), unit.Dp(500)),
+			app.MinSize(unit.Dp(680), unit.Dp(440)),
+		)
+		goErr <- ui.loop(w, ctx)
+	}()
+
+	app.Main()
+	return <-goErr
+}
+
+func newAskUI(history []askwrapper.HistoryEntry, timeout time.Duration, followUp bool) *askUI {
+	ui := &askUI{
+		timeout:               timeout,
+		history:               history,
+		historyClicks:         make([]widget.Clickable, len(history)),
+		historyList:           widget.List{List: layout.List{Axis: layout.Vertical}},
+		selected:              -1,
+		modeFollowUp:          followUp,
+		preview:               "",
+		status:                "",
+		resultCh:              make(chan askResult, 1),
+		focusInputOnNextFrame: true,
+		focusDeleteIndex:      -1,
+	}
+	ui.historyDelete = make([]widget.Clickable, len(history))
+	if followUp {
+		ui.status = copyFollowUpNeedsContext
+		ui.modeEnum.Value = modeFollowUpValue
+	} else {
+		ui.modeEnum.Value = modeAskValue
+	}
+	ui.question.SingleLine = true
+	ui.question.Submit = true
+	ui.previewList.List.Axis = layout.Vertical
+	return ui
+}
+
+func (u *askUI) windowTitle() string {
+	if u.modeFollowUp {
+		return copyWindowTitleFollowUp
+	}
+	return copyWindowTitleAsk
+}
+
+func (u *askUI) loop(w *app.Window, parent context.Context) error {
+	th := material.NewTheme()
+	th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+	th.Palette.Bg = color.NRGBA{R: 16, G: 21, B: 28, A: 255}
+	th.Palette.Fg = color.NRGBA{R: 222, G: 228, B: 236, A: 255}
+	th.Palette.ContrastBg = color.NRGBA{R: 41, G: 109, B: 196, A: 255}
+	th.Palette.ContrastFg = color.NRGBA{R: 248, G: 251, B: 255, A: 255}
+
+	var ops op.Ops
 	for {
-		fmt.Print("Question (or :N to preview history, blank to cancel): ")
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			return fmt.Errorf("read input: %w", err)
+		select {
+		case res := <-u.resultCh:
+			u.applyAskResult(res)
+			w.Invalidate()
+		default:
 		}
 
-		input := strings.TrimSpace(line)
-		if input == "" {
-			fmt.Fprintln(os.Stderr, "Cancelled")
-			return nil
-		}
-
-		if strings.HasPrefix(input, ":") {
-			if err := previewHistory(history, strings.TrimPrefix(input, ":")); err != nil {
-				fmt.Fprintf(os.Stderr, "Preview error: %v\n", err)
+		e := w.Event()
+		switch e := e.(type) {
+		case app.DestroyEvent:
+			return u.handleDestroyEvent(e.Err)
+		case app.FrameEvent:
+			gtx := app.NewContext(&ops, e)
+			if u.focusInputOnNextFrame {
+				gtx.Execute(key.FocusCmd{Tag: &u.question})
+				u.focusInputOnNextFrame = false
 			}
-			continue
-		}
+			u.applyPendingDeleteFocus(gtx)
+			if u.running {
+				w.Invalidate()
+			}
 
-		fmt.Fprintln(os.Stderr, "Running ask...")
-		answer, err := askwrapper.RunAsk(ctx, input, timeout)
-		if err != nil {
-			return err
-		}
+			for {
+				ev, ok := u.question.Update(gtx)
+				if !ok {
+					break
+				}
+				if _, isSubmit := ev.(widget.SubmitEvent); isSubmit {
+					u.startAsk(parent)
+				}
+			}
 
-		fmt.Println(answer)
-		if err := askwrapper.AppendHistory(input, answer); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to append history: %v\n", err)
-		}
-		return nil
-	}
-}
+			if !u.running && u.modeEnum.Update(gtx) {
+				u.switchMode(u.modeEnum.Value == modeFollowUpValue)
+			}
 
-func printHistory(entries []askwrapper.HistoryEntry) {
-	if len(entries) == 0 {
-		fmt.Fprintln(os.Stderr, "No askwrapper history yet.")
-		return
-	}
+			if !u.running {
+				for {
+					ev, ok := gtx.Source.Event(
+						key.Filter{Name: key.NameDeleteForward},
+						key.Filter{Name: key.NameDeleteBackward, Required: key.ModShortcut},
+						key.Filter{Name: "D", Required: key.ModShortcut},
+					)
+					if !ok {
+						break
+					}
+					if ke, isKey := ev.(key.Event); isKey {
+						switch ke.Name {
+						case key.NameDeleteForward, key.NameDeleteBackward, "D":
+							u.deleteSelected()
+						}
+					}
+				}
+			}
 
-	limit := 8
-	if len(entries) < limit {
-		limit = len(entries)
-	}
-
-	fmt.Fprintln(os.Stderr, "Recent askwrapper history:")
-	for i := 0; i < limit; i++ {
-		entry := entries[i]
-		when := ""
-		if entry.At > 0 {
-			when = time.Unix(entry.At, 0).Format("2006-01-02 15:04")
-		}
-		preview := oneLine(entry.Answer)
-		if len(preview) > 72 {
-			preview = preview[:72] + "..."
-		}
-		if when != "" {
-			fmt.Fprintf(os.Stderr, "  %d. %s (%s)\n", i+1, strings.TrimSpace(entry.Question), when)
-		} else {
-			fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, strings.TrimSpace(entry.Question))
-		}
-		if preview != "" {
-			fmt.Fprintf(os.Stderr, "     %s\n", preview)
+			u.draw(gtx, th, parent)
+			e.Frame(gtx.Ops)
 		}
 	}
-	fmt.Fprintln(os.Stderr, "Tip: use :N to preview full answer for entry N.")
-}
-
-func previewHistory(entries []askwrapper.HistoryEntry, indexText string) error {
-	idx, err := strconv.Atoi(strings.TrimSpace(indexText))
-	if err != nil || idx < 1 || idx > len(entries) {
-		return fmt.Errorf("invalid history index")
-	}
-	entry := entries[idx-1]
-	fmt.Fprintf(os.Stderr, "\n[%d] %s\n", idx, strings.TrimSpace(entry.Question))
-	fmt.Fprintf(os.Stderr, "%s\n\n", strings.TrimSpace(entry.Answer))
-	return nil
-}
-
-func oneLine(input string) string {
-	out := strings.ReplaceAll(input, "\r\n", "\n")
-	out = strings.ReplaceAll(out, "\n", " ")
-	out = strings.Join(strings.Fields(out), " ")
-	return out
 }

@@ -18,6 +18,37 @@ Status values:
 | `CLI-ASK-001` | Automated | `cli/cmd/ask/main_test.go` (`TestGetUserInput`) | Covered | - |
 | `CLI-ASK-002` | Automated | `cli/cmd/ask/main_test.go` (`TestBuildPrompt`) | Covered | - |
 | `CLI-ASK-003` | Automated | - | Gap | - |
+| `CLI-ASKWRAPPER-001` | Automated | `cli/cmd/askwrapper/main_test.go` (`TestAskMode_WiresTimeoutToRunner`) | Covered | - |
+| `CLI-ASKWRAPPER-002` | Automated | `cli/cmd/askwrapper/main_test.go` (`TestFollowUpMode_WiresTimeoutToRunner`) | Covered | - |
+| `CLI-ASKWRAPPER-003` | Automated | `cli/internal/askwrapper/history_test.go` (`TestAppendHistory_PrependsAndPersists`), `cli/internal/askwrapper/history_test.go` (`TestLoadHistory_EmptyWhenMissing`), `cli/internal/askwrapper/history_test.go` (`TestLoadHistory_InvalidJSONReturnsError`) | Covered | - |
+| `CLI-ASKWRAPPER-004` | Automated | `cli/internal/askwrapper/history_test.go` (`TestAppendHistory_PrependsAndPersists`) | Covered | - |
+| `CLI-ASKWRAPPER-005` | Automated | `cli/cmd/askwrapper/main_test.go` (`TestAskMode_TimeoutValidation`), `cli/cmd/askwrapper/main_test.go` (`TestAskMode_WiresTimeoutToRunner`), `cli/cmd/askwrapper/main_test.go` (`TestFollowUpMode_WiresTimeoutToRunner`), `cli/internal/askwrapper/runner_test.go` (`TestRunAsk_Timeout`) | Covered | - |
+| `CLI-ASKWRAPPER-006` | Automated | `cli/internal/askwrapper/prompt_test.go` (`TestBuildFollowUpPrompt_IncludesContextAndQuestion`) | Covered | - |
+| `CLI-ASKWRAPPER-007` | Automated | `cli/internal/askwrapperui/ask_terminal_test.go` (`TestParseIndex_ValidAndInvalid`) | Covered | - |
+| `CLI-ASKWRAPPER-008` | Automated | `cli/internal/askwrapperui/ask_terminal_test.go` (`TestDeleteHistory_RemovesRequestedEntry`) | Covered | - |
+| `CLI-ASKWRAPPER-009` | Automated | - | Gap | - |
+| `CLI-ASKWRAPPER-010` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestRunningState_DisablesQuestionInputAndHistory`) | Covered | - |
+| `CLI-ASKWRAPPER-011` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestRunningState_DisablesQuestionInputAndHistory`) | Covered | - |
+| `CLI-ASKWRAPPER-012` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_RemovesEntryImmediatelyWithoutUndo`), `cli/internal/askwrapperui/ask_test.go` (`TestHistoryRowDeleteAction_IsExplicitPerRow`) | Covered | - |
+| `CLI-ASKWRAPPER-013` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestSwitchMode_UsesRadioValuesAndStatus`) | Covered | - |
+| `CLI-ASKWRAPPER-014` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestCanSubmit_FollowUpRequiresContextSelection`), `cli/internal/askwrapperui/ask_test.go` (`TestStartAsk_FollowUpRequiresSelectedContext`) | Covered | - |
+| `CLI-ASKWRAPPER-015` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestHelpText_CommunicatesModeAndDeleteShortcut`) | Covered | - |
+| `CLI-ASKWRAPPER-016` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_RemovesEntryImmediatelyWithoutUndo`) | Covered | - |
+| `CLI-ASKWRAPPER-017` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestCancelAsk_CallsCancelAndUpdatesStatus`) | Covered | - |
+| `CLI-ASKWRAPPER-018` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestPreviewPanel_UsesVerticalListForScrollableContent`) | Covered | - |
+| `CLI-ASKWRAPPER-019` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestPrimaryLabel_SwitchesBetweenArrowAndCancel`) | Covered | - |
+| `CLI-ASKWRAPPER-020` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_UpdatesPreviewToCurrentSelection`), `cli/internal/askwrapperui/ask_test.go` (`TestHistoryRowDeleteAction_IsExplicitPerRow`) | Covered | - |
+| `CLI-ASKWRAPPER-021` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_UpdatesPreviewToCurrentSelection`) | Covered | - |
+| `CLI-ASKWRAPPER-022` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestStatusLine_ShowsSpinnerWhileRunning`) | Covered | - |
+| `CLI-ASKWRAPPER-023` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestInputAndPrimaryShareHorizontalRow`) | Covered | - |
+| `CLI-ASKWRAPPER-024` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestPrimaryLabel_SwitchesBetweenArrowAndCancel`) | Covered | - |
+| `CLI-ASKWRAPPER-025` | Automated | `cli/internal/askwrapperui/hammerspoon_contract_test.go` (`TestHammerspoonLaunchesAskwrapperOnly`) | Covered | - |
+| `CLI-ASKWRAPPER-026` | Automated | `cli/internal/askwrapperui/hammerspoon_contract_test.go` (`TestHammerspoonLaunchesAskwrapperOnly`) | Covered | - |
+| `CLI-ASKWRAPPER-027` | Automated | `cli/internal/askwrapperui/hammerspoon_contract_test.go` (`TestHammerspoonLaunchesAskwrapperOnly`) | Covered | - |
+| `CLI-ASKWRAPPER-028` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestNewAskUI_DefaultsAskModeAndFocusInput`) | Covered | - |
+| `CLI-ASKWRAPPER-029` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestHandleDestroyEvent_CancelsInFlightAsk`) | Covered | - |
+| `CLI-ASKWRAPPER-030` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestApplyAskResult_HistoryAppendFailureKeepsPreviewWithWarning`) | Covered | - |
+| `CLI-ASKWRAPPER-031` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestApplyPendingDeleteFocus_ClearsPendingIndex`), `cli/internal/askwrapperui/ask_test.go` (`TestNextDeleteFocusIndex_FollowsDeletedRowPosition`) | Covered | - |
 | `CLI-CTX-001` | Automated | `cli/cmd/ctx-edit/main_test.go` (`TestApplyUpdate_ReplacesSelection`) | Covered | - |
 | `CLI-CTX-002` | Automated | `cli/cmd/ctx-edit/main_test.go` (`TestApplyUpdate_InvalidRange`) | Covered | - |
 | `CLI-EXP-001` | Automated | `cli/cmd/explain/main_test.go` (`TestGetCodeInput_File`) | Covered | - |

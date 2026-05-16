@@ -43,6 +43,7 @@ func TestRunAsk_FailureIncludesStderr(t *testing.T) {
 }
 
 func TestRunAsk_Timeout(t *testing.T) {
+	// @req CLI-ASKWRAPPER-005
 	binDir := t.TempDir()
 	writeAskScript(t, binDir, "#!/usr/bin/env bash\n", "sleep 2\n", "printf 'late output\\n'\n")
 

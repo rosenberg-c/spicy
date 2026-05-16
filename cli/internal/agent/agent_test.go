@@ -234,8 +234,7 @@ func TestAgent_RunnerInterface(t *testing.T) {
 	var _ Runner = (*mockAgentRunner)(nil)
 }
 
-// Example test showing how to use mock in tests
-func ExampleMockUsage(t *testing.T) {
+func TestMockUsage(t *testing.T) {
 	// Create mock with specific response
 	mock := &mockAgentRunner{
 		response: "mocked AI response",

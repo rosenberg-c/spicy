@@ -3,6 +3,7 @@ package askwrapper
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,7 +43,7 @@ func LoadHistory() ([]HistoryEntry, error) {
 
 	var entries []HistoryEntry
 	if err := json.Unmarshal(data, &entries); err != nil {
-		return []HistoryEntry{}, nil
+		return nil, fmt.Errorf("parse history %s: %w", path, err)
 	}
 
 	return entries, nil
@@ -65,6 +66,10 @@ func AppendHistory(question, answer string) error {
 		At:       time.Now().Unix(),
 	}
 	entries = append([]HistoryEntry{entry}, entries...)
+	return saveAll(entries)
+}
+
+func saveAll(entries []HistoryEntry) error {
 
 	path, err := HistoryPath()
 	if err != nil {
@@ -96,4 +101,17 @@ func AppendHistory(question, answer string) error {
 	}
 
 	return os.Rename(tmpPath, path)
+}
+
+func DeleteHistoryAt(index int) error {
+	entries, err := LoadHistory()
+	if err != nil {
+		return err
+	}
+	if index < 0 || index >= len(entries) {
+		return nil
+	}
+
+	entries = append(entries[:index], entries[index+1:]...)
+	return saveAll(entries)
 }

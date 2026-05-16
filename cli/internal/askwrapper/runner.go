@@ -36,6 +36,9 @@ func RunAsk(parent context.Context, question string, timeout time.Duration) (str
 
 	err := cmd.Run()
 	if err != nil {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			return "", fmt.Errorf("ask cancelled")
+		}
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return "", fmt.Errorf("ask timed out after %s", timeout)
 		}

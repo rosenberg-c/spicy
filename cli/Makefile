@@ -12,9 +12,9 @@ INSTALL_DIR ?= $(HOME)/.local/bin
 CMDS := tutor gitmessage explain ask history v-edit askwrapper
 
 .PHONY: help fmt vet test check build build-all clean install install-all
-.PHONY: build-tutor build-gitmessage build-explain build-ask build-history build-v-edit build-ctx-edit build-askwrapper
+.PHONY: build-tutor build-gitmessage build-explain build-ask build-history build-v-edit build-ctx-edit build-askwrapper build-askwrapper-gio
 .PHONY: install-tutor install-gitmessage install-explain install-ask
-.PHONY: install-history install-v-edit install-ctx-edit install-askwrapper
+.PHONY: install-history install-v-edit install-ctx-edit install-askwrapper install-askwrapper-gio
 
 help:
 	@printf "%s\n" \
@@ -31,6 +31,7 @@ help:
 	"  make build-history    - build record only" \
 	"  make build-v-edit     - build v-edit only" \
 	"  make build-askwrapper - build askwrapper only" \
+	"  make build-askwrapper-gio - build askwrapper with Gio UI" \
 	"  make install-all      - install all commands to $(INSTALL_DIR)" \
 	"  make install-tutor    - install tutor only" \
 	"  make install-gitmessage - install gitmessage only" \
@@ -39,6 +40,7 @@ help:
 	"  make install-history  - install record only" \
 	"  make install-v-edit   - install v-edit only" \
 	"  make install-askwrapper - install askwrapper only" \
+	"  make install-askwrapper-gio - install askwrapper with Gio UI" \
 	"  make clean            - remove all built binaries"
 
 fmt:
@@ -86,6 +88,10 @@ build-v-edit:
 build-askwrapper:
 	@mkdir -p "$(BINDIR)"
 	$(GO) build -o "$(BINDIR)/askwrapper" ./cmd/askwrapper
+
+build-askwrapper-gio:
+	@mkdir -p "$(BINDIR)"
+	$(GO) build -tags gio -o "$(BINDIR)/askwrapper" ./cmd/askwrapper
 
 build-ctx-edit: build-v-edit
 
@@ -148,6 +154,11 @@ install-v-edit: build-v-edit
 	cp "$(BINDIR)/v-edit" "$(INSTALL_DIR)/v-edit"
 
 install-askwrapper: build-askwrapper
+	@mkdir -p "$(INSTALL_DIR)"
+	rm -f "$(INSTALL_DIR)/askwrapper"
+	cp "$(BINDIR)/askwrapper" "$(INSTALL_DIR)/askwrapper"
+
+install-askwrapper-gio: build-askwrapper-gio
 	@mkdir -p "$(INSTALL_DIR)"
 	rm -f "$(INSTALL_DIR)/askwrapper"
 	cp "$(BINDIR)/askwrapper" "$(INSTALL_DIR)/askwrapper"
