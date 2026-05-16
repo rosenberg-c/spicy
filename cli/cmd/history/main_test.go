@@ -63,6 +63,7 @@ func TestTruncate(t *testing.T) {
 	}
 }
 
+// @req CORE-HIST-002
 func TestFormatEntryAsMarkdown(t *testing.T) {
 	tests := []struct {
 		name    string

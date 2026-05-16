@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// @req CORE-CLI-003
 func TestSave(t *testing.T) {
 	// Create a temporary directory for testing
 	tmpDir := t.TempDir()
@@ -195,6 +196,73 @@ func TestList(t *testing.T) {
 	// Verify entry data
 	if entries[0].Command != "ask" {
 		t.Errorf("Expected command 'ask', got '%s'", entries[0].Command)
+	}
+}
+
+// @req CORE-HIST-001
+func TestListReturnsNewestFirst(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(originalDir)
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+
+	historyDir := filepath.Join(".spicy", "ask")
+	if err := os.MkdirAll(historyDir, 0o755); err != nil {
+		t.Fatalf("create history dir: %v", err)
+	}
+
+	older := Entry{
+		Data:      map[string]interface{}{"question": "older"},
+		Date:      "2026-01-01 10:00:00",
+		Version:   1,
+		Command:   "ask",
+		Timestamp: 100,
+	}
+	newer := Entry{
+		Data:      map[string]interface{}{"question": "newer"},
+		Date:      "2026-01-01 10:00:01",
+		Version:   1,
+		Command:   "ask",
+		Timestamp: 200,
+	}
+
+	olderJSON, err := json.Marshal(older)
+	if err != nil {
+		t.Fatalf("marshal older entry: %v", err)
+	}
+	newerJSON, err := json.Marshal(newer)
+	if err != nil {
+		t.Fatalf("marshal newer entry: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(historyDir, "older.json"), olderJSON, 0o644); err != nil {
+		t.Fatalf("write older entry: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(historyDir, "newer.json"), newerJSON, 0o644); err != nil {
+		t.Fatalf("write newer entry: %v", err)
+	}
+
+	entries, err := List("ask")
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+
+	if len(entries) != 2 {
+		t.Fatalf("Expected 2 entries, got %d", len(entries))
+	}
+
+	if entries[0].Timestamp != 200 {
+		t.Fatalf("Expected newest entry first, got timestamp %d", entries[0].Timestamp)
+	}
+	if entries[1].Timestamp != 100 {
+		t.Fatalf("Expected older entry second, got timestamp %d", entries[1].Timestamp)
 	}
 }
 

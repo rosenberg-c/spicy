@@ -7,6 +7,7 @@ import (
 	"module/lib/internal/cliutil"
 )
 
+// @req CLI-TUTOR-001
 func TestGetUserInput(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -55,6 +56,7 @@ func TestGetUserInput(t *testing.T) {
 	}
 }
 
+// @req CLI-TUTOR-001
 func TestBuildTutorialPrompt(t *testing.T) {
 	tests := []struct {
 		name         string

@@ -23,6 +23,20 @@ Quick setup:
 
 This project was inspired by https://github.com/ThePrimeagen/99, but I chose to build my own solution tailored to how I work.
 
+## Requirement-driven workflow
+
+Spicy now uses a requirement-first workflow for behavior changes:
+
+- Requirements live in `docs/REQUIREMENTS.md` and `docs/requirements/*.md`
+- Automated coverage mapping lives in `docs/TEST_MATRIX.md`
+- Test-to-requirement links use `@req` comment tags in test files
+
+Regenerate the test matrix with:
+
+```sh
+make sync-test-matrix
+```
+
 ## Feature highlights
 
 ### CLI (`cli/`)

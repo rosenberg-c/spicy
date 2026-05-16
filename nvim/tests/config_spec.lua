@@ -9,6 +9,7 @@ describe("spicy.config", function()
 
   describe("setup", function()
     it("should load default config", function()
+      -- @req NVIM-CONFIG-001
       config.setup()
       local cfg = config.get_all()
 
@@ -52,6 +53,7 @@ describe("spicy.config", function()
     end)
 
     it("should get nested values with dot notation", function()
+      -- @req NVIM-CONFIG-002
       config.setup()
       local output = config.get("ui.ask.output")
       assert.equals("float", output)
@@ -149,6 +151,7 @@ describe("spicy.config", function()
     end)
 
     it("should reject invalid models type", function()
+      -- @req NVIM-CONFIG-003
       local valid, err = config.validate({
         models = "not a table",
       })

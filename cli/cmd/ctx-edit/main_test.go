@@ -47,6 +47,7 @@ func TestReadStdinEmpty(t *testing.T) {
 	})
 }
 
+// @req CLI-CTX-001
 func TestApplyUpdate_ReplacesSelection(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "sample.txt")
@@ -75,6 +76,7 @@ func TestApplyUpdate_ReplacesSelection(t *testing.T) {
 	}
 }
 
+// @req CLI-CTX-002
 func TestApplyUpdate_InvalidRange(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "sample.txt")

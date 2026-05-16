@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// @req CLI-EXP-001
 func TestGetCodeInput_File(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -74,6 +75,7 @@ func TestGetCodeInput_File(t *testing.T) {
 	}
 }
 
+// @req CLI-EXP-002
 func TestReadDirectory(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -177,6 +179,7 @@ func TestReadDirectory(t *testing.T) {
 	}
 }
 
+// @req CLI-EXP-003
 func TestDetectLanguage(t *testing.T) {
 	tests := []struct {
 		name   string

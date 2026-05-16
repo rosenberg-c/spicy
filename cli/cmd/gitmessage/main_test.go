@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// @req CLI-GITMSG-001, CLI-GITMSG-002
 func TestBuildPrompt(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -154,6 +155,7 @@ func TestGetStagedDiff_EmptyRepo(t *testing.T) {
 	}
 }
 
+// @req CLI-GITMSG-001
 func TestGetStagedDiff_WithStagedChanges(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping git integration test in short mode")
