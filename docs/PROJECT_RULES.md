@@ -64,3 +64,28 @@ These rules are specific to this project and take precedence over generic guidan
 - do not mutate slice-backed UI state while iterating related event/click handler slices in the same pass
 - when a UI event implies deletion/reload of list data, capture intent first and apply mutation after iteration, or exit iteration immediately after mutation
 - prefer defensive bounds checks when list length can change due to actions in the same frame
+
+---
+
+## 9. Prevent duplicate mutation actions in UI flows
+
+- disable mutation-triggering controls immediately after a mutation starts
+- keep related controls disabled until mutation resolution (success or failure)
+- avoid enqueuing duplicate requests from repeated clicks/keypresses
+- add/adjust tests for disabled -> enabled transitions when mutation state is user-visible
+
+---
+
+## 10. Use typed error categories across command boundaries
+
+- map domain/command failures using stable typed categories or sentinels, not raw error string matching
+- keep user-facing copy decoupled from internal error detail
+- when adding a new error category, add tests for both category emission and mapped behavior
+
+---
+
+## 11. Model ordered/batch updates with collection semantics
+
+- when changing ordered collections (history, lists, grouped entries), model the target list state first
+- validate list invariants at boundaries (membership, duplicates, stable ordering behavior)
+- avoid parallel one-off mutation paths that diverge from collection-level behavior

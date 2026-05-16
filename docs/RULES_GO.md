@@ -1,0 +1,1 @@
+../../agent/docs/RULES_GO.md
