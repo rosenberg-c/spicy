@@ -122,3 +122,24 @@ Then enable it from your `~/.hammerspoon/init.lua`:
 ```lua
 require("modules.askwrapper").setup()
 ```
+
+## XFCE shortcut (Debian)
+
+If you use XFCE instead of Hammerspoon, you can bind AskWrapper in:
+
+- `Settings Manager -> Keyboard -> Application Shortcuts`
+
+Use this command if `askwrapper` is not found from XFCE shortcuts:
+
+```sh
+/bin/bash -lc 'source "$HOME/.bashprofile"; askwrapper ui ask'
+```
+
+`~/.bashprofile` should include your `PATH` exports for both `~/.local/bin`
+and `~/.opencode/bin`.
+
+If `opencode` is still not found, use an explicit `PATH` fallback:
+
+```sh
+/bin/bash -lc 'export PATH="$HOME/.local/bin:$HOME/.opencode/bin:/usr/local/bin:/usr/bin:/bin"; askwrapper ui ask'
+```
