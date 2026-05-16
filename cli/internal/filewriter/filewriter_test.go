@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// @req CORE-CLI-002
 func TestWriteAtomic(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// @req CLI-ASK-001, CORE-CLI-001
 func TestGetUserInput(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -59,6 +60,7 @@ func TestGetUserInput(t *testing.T) {
 	}
 }
 
+// @req CLI-ASK-002
 func TestBuildPrompt(t *testing.T) {
 	tests := []struct {
 		name         string

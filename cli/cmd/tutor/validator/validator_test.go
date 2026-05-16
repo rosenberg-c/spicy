@@ -107,6 +107,7 @@ func TestValidator_Validate(t *testing.T) {
 	}
 }
 
+// @req CLI-TUTOR-002, CORE-CLI-004
 func TestValidator_Validate_Errors(t *testing.T) {
 	tests := []struct {
 		name          string
