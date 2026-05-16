@@ -33,8 +33,8 @@ func New(verbose bool) *Agent {
 }
 
 func (a *Agent) Run(ctx context.Context, model, prompt string) (string, error) {
-	// Build command: opencode run --agent build -m <model> <prompt>
-	cmd := exec.CommandContext(ctx, "opencode", "run", "--agent", "build", "-m", model, prompt)
+	// Build command: opencode run -m <model> <prompt>
+	cmd := exec.CommandContext(ctx, "opencode", "run", "-m", model, prompt)
 
 	// Capture stdout
 	var stdout bytes.Buffer
