@@ -52,7 +52,7 @@ The Gio askwrapper flow must provide history deletion via explicit UI action and
 
 The Gio askwrapper flow must provide an in-app mode switch between ask mode and follow-up mode.
 
-### `CLI-ASKWRAPPER-013A`
+### `CLI-ASKWRAPPER-013-A`
 
 The Gio askwrapper mode switch must be rendered as mutually exclusive radio options for `Ask` and `Follow-up`.
 

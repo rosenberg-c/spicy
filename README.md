@@ -12,6 +12,7 @@ this tooling suite forward, especially `tutor` and `explain`.
 - `cli/` - The Spicy CLI tools (Go)
 - `nvim/` - The spicy.nvim Neovim plugin
 - `hammerspoon/` - The Hammerspoon module that wraps `spicy ask`
+- `imgwalker/` - Image browser desktop app (Gio)
 
 Quick setup:
 
@@ -63,6 +64,15 @@ make sync-test-matrix
 - Lightweight spinner UI while running `ask`
 - See `hammerspoon/README.md` for setup and usage
 
+### ImgWalker (`imgwalker/`)
+
+- Keyboard-driven image browser UI built with Gio.
+- The `p` shortcut copies the selected image path to system clipboard.
+- The `m` shortcut opens an OS directory picker and moves the selected image.
+- Linux clipboard dependency: install `wl-clipboard` (`wl-copy`) for Wayland or `xclip` for X11.
+- Linux move-picker dependency: install `zenity` (preferred) or `kdialog`.
+- XFCE shortcut fallback command: `/bin/bash -lc 'source "$HOME/.bashprofile"; imgwalker'`.
+
 ## CLI
 
 See `cli/README.md` for full docs.
@@ -109,18 +119,24 @@ Lazy.nvim example:
 
 ## Hammerspoon module
 
-The Hammerspoon integration lives in `hammerspoon/modules/askwrapper.lua` and wraps the `spicy ask` CLI.
+The Hammerspoon integration lives in `hammerspoon/modules/spicy.lua` and wraps the `spicy` CLI launchers.
+
+Default hotkeys:
+
+- `alt+shift+A` -> `askwrapper ui ask`
+- `alt+shift+S` -> `askwrapper ui followup`
+- `alt+shift+D` -> `imgwalker`
 
 Setup (symlink into your Hammerspoon config):
 
 ```sh
-ln -s "$(pwd)/hammerspoon/modules/askwrapper.lua" "$HOME/.hammerspoon/modules/askwrapper.lua"
+ln -s "$(pwd)/hammerspoon/modules/spicy.lua" "$HOME/.hammerspoon/modules/spicy.lua"
 ```
 
 Then enable it from your `~/.hammerspoon/init.lua`:
 
 ```lua
-require("modules.askwrapper").setup()
+require("modules.spicy").setup()
 ```
 
 ## XFCE shortcut (Debian)

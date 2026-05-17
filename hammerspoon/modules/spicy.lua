@@ -13,11 +13,11 @@ local function trim(s)
 	return out
 end
 
-local function resolveAskwrapperPath()
+local function resolveBinaryPath(binaryName)
 	local candidates = {
-		os.getenv("HOME") .. "/.local/bin/askwrapper",
-		"/opt/homebrew/bin/askwrapper",
-		"/usr/local/bin/askwrapper",
+		os.getenv("HOME") .. "/.local/bin/" .. binaryName,
+		"/opt/homebrew/bin/" .. binaryName,
+		"/usr/local/bin/" .. binaryName,
 	}
 
 	for _, path in ipairs(candidates) do
@@ -26,7 +26,7 @@ local function resolveAskwrapperPath()
 		end
 	end
 
-	local out = hs.execute("PATH=$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH; command -v askwrapper")
+	local out = hs.execute("PATH=$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH; command -v " .. binaryName)
 	out = trim(out)
 	if out ~= "" and hs.fs.attributes(out) then
 		return out
@@ -35,10 +35,10 @@ local function resolveAskwrapperPath()
 	return nil
 end
 
-local function launchAskwrapper(args)
-	local exe = resolveAskwrapperPath()
+local function launchBinary(binaryName, args)
+	local exe = resolveBinaryPath(binaryName)
 	if not exe then
-		hs.alert.show("askwrapper not found in PATH")
+		hs.alert.show(binaryName .. " not found in PATH")
 		return
 	end
 
@@ -52,7 +52,7 @@ local function launchAskwrapper(args)
 	task = hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
 		uiTasks[task] = nil
 		if exitCode ~= 0 then
-			hs.alert.show("askwrapper exited (" .. tostring(exitCode) .. ")")
+			hs.alert.show(binaryName .. " exited (" .. tostring(exitCode) .. ")")
 			local errText = trim(stdErr or "")
 			local outText = trim(stdOut or "")
 			if errText ~= "" then
@@ -64,15 +64,23 @@ local function launchAskwrapper(args)
 	end, { "-lc", shellCmd })
 
 	if not task then
-		hs.alert.show("Could not launch askwrapper")
+		hs.alert.show("Could not launch " .. binaryName)
 		return
 	end
 
 	uiTasks[task] = true
 	if not task:start() then
 		uiTasks[task] = nil
-		hs.alert.show("Failed to start askwrapper")
+		hs.alert.show("Failed to start " .. binaryName)
 	end
+end
+
+local function launchAskwrapper(args)
+	launchBinary("askwrapper", args)
+end
+
+local function launchImgwalker()
+	launchBinary("imgwalker")
 end
 
 function M.setup()
@@ -82,6 +90,10 @@ function M.setup()
 
 	hs.hotkey.bind({ "alt", "shift" }, "S", function()
 		launchAskwrapper({ "ui", "followup" })
+	end)
+
+	hs.hotkey.bind({ "alt", "shift" }, "D", function()
+		launchImgwalker()
 	end)
 end
 

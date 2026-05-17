@@ -1,6 +1,7 @@
-.PHONY: help test test-cli test-nvim install install-cli install-gio install-cli-gio sync-test-matrix link-agent-docs
+.PHONY: help test test-cli test-nvim install install-cli install-imgwalker install-gio install-cli-gio sync-test-matrix link-agent-docs
 
 SPECSYNC ?= specsync
+INSTALL_DIR ?= $(HOME)/.local/bin
 
 help:
 	@printf "%s\n" \
@@ -9,6 +10,7 @@ help:
 	"  make test-cli  - run CLI tests" \
 	"  make test-nvim - run Neovim plugin tests" \
 	"  make install   - install CLI tools" \
+	"  make install-imgwalker - install imgwalker GUI app" \
 	"  make install-gio - install CLI tools + Gio askwrapper" \
 	"  make link-agent-docs - symlink shared agent rules" \
 	"  make sync-test-matrix - regenerate docs/TEST_MATRIX.md"
@@ -25,6 +27,9 @@ install: install-cli
 
 install-cli:
 	$(MAKE) -C cli install-all
+
+install-imgwalker:
+	$(MAKE) -C imgwalker install INSTALL_DIR="$(INSTALL_DIR)"
 
 sync-test-matrix:
 	$(SPECSYNC) -apply -config docs/test-matrix.config.json

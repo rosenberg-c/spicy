@@ -17,7 +17,7 @@ func TestHammerspoonLaunchesAskwrapperOnly(t *testing.T) {
 	if !ok {
 		t.Fatal("runtime.Caller failed")
 	}
-	luaPath := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "../../../hammerspoon/modules/askwrapper.lua"))
+	luaPath := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "../../../hammerspoon/modules/spicy.lua"))
 	raw, err := os.ReadFile(luaPath)
 	if err != nil {
 		t.Fatalf("read lua module: %v", err)
@@ -29,6 +29,12 @@ func TestHammerspoonLaunchesAskwrapperOnly(t *testing.T) {
 	}
 	if !strings.Contains(content, `launchAskwrapper({ "ui", "followup" })`) {
 		t.Fatal("missing alt+shift+S askwrapper ui followup launcher")
+	}
+	if !strings.Contains(content, `launchImgwalker()`) {
+		t.Fatal("missing alt+shift+D imgwalker launcher")
+	}
+	if !strings.Contains(content, `hs.hotkey.bind({ "alt", "shift" }, "D"`) {
+		t.Fatal("missing alt+shift+D hotkey binding")
 	}
 
 	if strings.Contains(content, "runAsk") {

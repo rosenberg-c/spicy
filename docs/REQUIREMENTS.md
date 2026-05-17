@@ -23,3 +23,4 @@ Detailed requirements are split by domain under `docs/requirements/`.
 - [History Command](requirements/history.md)
 - [Neovim Plugin](requirements/nvim.md)
 - [Hammerspoon Ask Wrapper](requirements/hammerspoon.md)
+- [ImgWalker GUI App](requirements/imgwalker.md)
