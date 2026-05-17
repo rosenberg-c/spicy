@@ -167,3 +167,7 @@ Pressing `r` must reload image entries from the configured `imageDir` and refres
 ### `IMGWALKER-041`
 
 When delete confirmation is armed, changing the selected image (keyboard or click selection change) must cancel the pending delete confirmation state.
+
+### `IMGWALKER-042`
+
+When keyboard navigation changes selection in the left image list, the list viewport must scroll only when the new selection would be outside the currently visible rows or only partially visible at the top/bottom edge.

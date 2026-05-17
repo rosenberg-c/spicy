@@ -389,10 +389,32 @@ func handleListKeyInput(gtx layout.Context, state *appState) {
 		executeShortcutAction(state, action)
 
 		if state.selectedIndex != prevIndex {
-			state.list.ScrollTo(state.selectedIndex)
-			state.list.Position.OffsetLast = 0
+			if shouldScrollSelectionIntoView(state.list.Position, state.selectedIndex, len(state.images)) {
+				state.list.ScrollTo(state.selectedIndex)
+			}
 		}
 	}
+}
+
+func shouldScrollSelectionIntoView(pos layout.Position, selectedIndex int, total int) bool {
+	if total <= 0 || selectedIndex < 0 || selectedIndex >= total {
+		return false
+	}
+	if pos.Count <= 0 {
+		return true
+	}
+	firstVisible := pos.First
+	lastVisible := pos.First + pos.Count - 1
+	if selectedIndex < firstVisible || selectedIndex > lastVisible {
+		return true
+	}
+	if selectedIndex == firstVisible && pos.Offset > 0 {
+		return true
+	}
+	if selectedIndex == lastVisible && pos.OffsetLast < 0 {
+		return true
+	}
+	return false
 }
 
 // Shortcut action handlers keep key event flow separate from side effects.

@@ -113,6 +113,7 @@ Status values:
 | `IMGWALKER-039` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestMoveSelectedImage_CancelledPickerDoesNotMutate`), `imgwalker/cmd/imgwalker/main_test.go` (`TestMoveSelectedImage_MovesFileAndRemovesRow`) | Covered | - |
 | `IMGWALKER-040` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`), `imgwalker/cmd/imgwalker/main_test.go` (`TestReloadImages_RefreshesListAndSelection`) | Covered | - |
 | `IMGWALKER-041` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestClearDeleteArmOnSelectionChange`) | Covered | - |
+| `IMGWALKER-042` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestShouldScrollSelectionIntoView`) | Covered | - |
 | `NVIM-CONFIG-001` | Automated | `nvim/tests/config_spec.lua` (`should load default config`) | Covered | - |
 | `NVIM-CONFIG-002` | Automated | `nvim/tests/config_spec.lua` (`should get nested values with dot notation`) | Covered | - |
 | `NVIM-CONFIG-003` | Automated | `nvim/tests/config_spec.lua` (`should reject invalid models type`) | Covered | - |

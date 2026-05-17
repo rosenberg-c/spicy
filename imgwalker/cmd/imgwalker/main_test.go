@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"gioui.org/io/key"
+	"gioui.org/layout"
 	"gioui.org/widget"
 )
 
@@ -485,6 +486,34 @@ func TestSelectedIndexAfterClickedIndexes_ClickSetsSelection(t *testing.T) {
 			got := selectedIndexAfterClickedIndexes(tc.current, tc.total, tc.clicked)
 			if got != tc.wantSelection {
 				t.Fatalf("selectedIndexAfterClickedIndexes(%d,%d,%v) = %d, want %d", tc.current, tc.total, tc.clicked, got, tc.wantSelection)
+			}
+		})
+	}
+}
+
+func TestShouldScrollSelectionIntoView(t *testing.T) {
+	// @req IMGWALKER-042
+	tests := []struct {
+		name     string
+		pos      layout.Position
+		selected int
+		total    int
+		want     bool
+	}{
+		{name: "no items does not scroll", pos: layout.Position{First: 0, Count: 0}, selected: 0, total: 0, want: false},
+		{name: "within visible range does not scroll", pos: layout.Position{First: 3, Count: 5}, selected: 6, total: 20, want: false},
+		{name: "above visible range scrolls", pos: layout.Position{First: 3, Count: 5}, selected: 2, total: 20, want: true},
+		{name: "below visible range scrolls", pos: layout.Position{First: 3, Count: 5}, selected: 8, total: 20, want: true},
+		{name: "partially hidden first row scrolls", pos: layout.Position{First: 3, Count: 5, Offset: 4}, selected: 3, total: 20, want: true},
+		{name: "partially hidden last row scrolls", pos: layout.Position{First: 3, Count: 5, OffsetLast: -6}, selected: 7, total: 20, want: true},
+		{name: "unknown viewport count scrolls", pos: layout.Position{First: 0, Count: 0}, selected: 1, total: 20, want: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := shouldScrollSelectionIntoView(tc.pos, tc.selected, tc.total)
+			if got != tc.want {
+				t.Fatalf("shouldScrollSelectionIntoView(%+v, %d, %d) = %t, want %t", tc.pos, tc.selected, tc.total, got, tc.want)
 			}
 		})
 	}
