@@ -73,6 +73,16 @@ Status values:
 | `IMGWALKER-001` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestStartupConfig_Defaults`) | Covered | - |
 | `IMGWALKER-002` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestHelloText_IsExact`) | Covered | - |
 | `IMGWALKER-003` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestTheme_UsesAskwrapperPalette`) | Covered | - |
+| `IMGWALKER-004` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestConfigFilePath_UsesXDGHomeLocation`) | Covered | - |
+| `IMGWALKER-005` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_LoadsImageDir`) | Covered | - |
+| `IMGWALKER-006` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_MissingFileReturnsNotFound`) | Covered | - |
+| `IMGWALKER-007` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_InvalidJSONReturnsInvalidConfig`) | Covered | - |
+| `IMGWALKER-008` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_EmptyImageDirReturnsInvalidConfig`) | Covered | - |
+| `IMGWALKER-009` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ImageDirMissingReturnsInvalidImageDir`) | Covered | - |
+| `IMGWALKER-010` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ImageDirNotDirectoryReturnsInvalidImageDir`) | Covered | - |
+| `IMGWALKER-011` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ExpandsTildeBeforeStat`) | Covered | - |
+| `IMGWALKER-012` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ResolvesRelativePathBeforeStat`) | Covered | - |
+| `IMGWALKER-013` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestBuildStartupWindowConfig_UsesEmptyImageDirOnResolveError`) | Covered | - |
 | `NVIM-CONFIG-001` | Automated | `nvim/tests/config_spec.lua` (`should load default config`) | Covered | - |
 | `NVIM-CONFIG-002` | Automated | `nvim/tests/config_spec.lua` (`should get nested values with dot notation`) | Covered | - |
 | `NVIM-CONFIG-003` | Automated | `nvim/tests/config_spec.lua` (`should reject invalid models type`) | Covered | - |
