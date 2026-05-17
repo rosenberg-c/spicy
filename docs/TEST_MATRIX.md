@@ -31,6 +31,7 @@ Status values:
 | `CLI-ASKWRAPPER-011` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestRunningState_DisablesQuestionInputAndHistory`) | Covered | - |
 | `CLI-ASKWRAPPER-012` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_RemovesEntryImmediatelyWithoutUndo`), `cli/internal/askwrapperui/ask_test.go` (`TestHistoryRowDeleteAction_IsExplicitPerRow`) | Covered | - |
 | `CLI-ASKWRAPPER-013` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestSwitchMode_UsesRadioValuesAndStatus`) | Covered | - |
+| `CLI-ASKWRAPPER-032` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestSwitchMode_UsesRadioValuesAndStatus`) | Covered | - |
 | `CLI-ASKWRAPPER-014` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestCanSubmit_FollowUpRequiresContextSelection`), `cli/internal/askwrapperui/ask_test.go` (`TestStartAsk_FollowUpRequiresSelectedContext`) | Covered | - |
 | `CLI-ASKWRAPPER-015` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestHelpText_CommunicatesModeAndDeleteShortcut`) | Covered | - |
 | `CLI-ASKWRAPPER-016` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_RemovesEntryImmediatelyWithoutUndo`) | Covered | - |
@@ -71,7 +72,7 @@ Status values:
 | `CORE-HIST-001` | Automated | `cli/internal/history/history_test.go` (`TestListReturnsNewestFirst`) | Covered | - |
 | `CORE-HIST-002` | Automated | `cli/cmd/history/main_test.go` (`TestFormatEntryAsMarkdown`) | Covered | - |
 | `IMGWALKER-001` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestStartupConfig_Defaults`) | Covered | - |
-| `IMGWALKER-002` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestHelloText_IsExact`) | Covered | - |
+| `IMGWALKER-002` | Automated | - | Gap | Deprecated/removed requirement |
 | `IMGWALKER-003` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestTheme_UsesAskwrapperPalette`) | Covered | - |
 | `IMGWALKER-004` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestConfigFilePath_UsesXDGHomeLocation`) | Covered | - |
 | `IMGWALKER-005` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_LoadsImageDir`) | Covered | - |
@@ -80,9 +81,24 @@ Status values:
 | `IMGWALKER-008` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_EmptyImageDirReturnsInvalidConfig`) | Covered | - |
 | `IMGWALKER-009` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ImageDirMissingReturnsInvalidImageDir`) | Covered | - |
 | `IMGWALKER-010` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ImageDirNotDirectoryReturnsInvalidImageDir`) | Covered | - |
+| `IMGWALKER-027` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_StatFailureReturnsInvalidImageDir`) | Covered | - |
 | `IMGWALKER-011` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ExpandsTildeBeforeStat`) | Covered | - |
 | `IMGWALKER-012` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestValidateStartupFileConfig_ResolvesRelativePathBeforeStat`) | Covered | - |
 | `IMGWALKER-013` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestBuildStartupWindowConfig_UsesEmptyImageDirOnResolveError`) | Covered | - |
+| `IMGWALKER-014` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestSplitPaneWidths_UsesLeftListAndRightPreviewWidths`) | Covered | - |
+| `IMGWALKER-015` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListImageFiles_FiltersAndSortsSupportedImages`) | Covered | - |
+| `IMGWALKER-028` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListImageFiles_FiltersAndSortsSupportedImages`) | Covered | - |
+| `IMGWALKER-016` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestNoImagesText_IsExact`) | Covered | - |
+| `IMGWALKER-017` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestNextSelectionIndex_JAndKMoveWithinBounds`) | Covered | - |
+| `IMGWALKER-018` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListRowColors_SelectedDiffersFromDefault`) | Covered | - |
+| `IMGWALKER-019` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestSelectedImagePath_ReturnsFullPathForSelection`) | Covered | - |
+| `IMGWALKER-020` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_ReadFailureReturnsIOError`) | Covered | - |
+| `IMGWALKER-021` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewPaneText_UsesEmptyTextWhenNoImages`) | Covered | - |
+| `IMGWALKER-022` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestSelectedIndexAfterClickedIndexes_ClickSetsSelection`) | Covered | - |
+| `IMGWALKER-023` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListPaneBackgroundColor_UsesThemeBg`) | Covered | - |
+| `IMGWALKER-024` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPaneDividerColor_IsVisibleAndStable`) | Covered | - |
+| `IMGWALKER-025` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewPaneText_DefaultsToFirstImageWhenSelectionInvalid`) | Covered | - |
+| `IMGWALKER-026` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListLoadErrorMessage`) | Covered | - |
 | `NVIM-CONFIG-001` | Automated | `nvim/tests/config_spec.lua` (`should load default config`) | Covered | - |
 | `NVIM-CONFIG-002` | Automated | `nvim/tests/config_spec.lua` (`should get nested values with dot notation`) | Covered | - |
 | `NVIM-CONFIG-003` | Automated | `nvim/tests/config_spec.lua` (`should reject invalid models type`) | Covered | - |

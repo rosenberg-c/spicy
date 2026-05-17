@@ -28,7 +28,7 @@ func TestNewAskUI_DefaultsAskModeAndFocusInput(t *testing.T) {
 
 func TestSwitchMode_UsesRadioValuesAndStatus(t *testing.T) {
 	// @req CLI-ASKWRAPPER-013
-	// @req CLI-ASKWRAPPER-013A
+	// @req CLI-ASKWRAPPER-032
 	history := []askwrapper.HistoryEntry{{Question: "q", Answer: "a"}}
 	ui := newAskUI(history, time.Second, false)
 	ui.selected = 0
