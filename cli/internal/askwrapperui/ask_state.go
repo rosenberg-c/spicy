@@ -164,8 +164,9 @@ func (u *askUI) handleDestroyEvent(err error) error {
 }
 
 func (u *askUI) setPreview(text string) {
-	u.preview = text
-	u.previewList.Position = layout.Position{}
+	u.previewText = text
+	u.preview.SetText(text)
+	u.preview.SetCaret(0, 0)
 }
 
 func (u *askUI) setStatus(text string) {

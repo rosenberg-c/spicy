@@ -194,18 +194,13 @@ func (u *askUI) draw(gtx layout.Context, th *material.Theme, parent context.Cont
 							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 								layout.Rigid(material.H6(th, copyPreviewTitle).Layout),
 								layout.Rigid(layout.Spacer{Height: unit.Dp(8)}.Layout),
-								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-									lines := strings.Split(u.preview, "\n")
-									listStyle := material.List(th, &u.previewList)
-									listStyle.AnchorStrategy = material.Occupy
-									return listStyle.Layout(gtx, len(lines), func(gtx layout.Context, i int) layout.Dimensions {
-										line := lines[i]
-										if line == "" {
-											line = " "
-										}
-										return layout.Inset{Bottom: unit.Dp(2)}.Layout(gtx, material.Body1(th, line).Layout)
-									})
-								}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								ed := material.Editor(th, &u.preview, "")
+								ed.TextSize = unit.Sp(15)
+								ed.Color = color.NRGBA{R: 224, G: 232, B: 245, A: 255}
+								ed.SelectionColor = color.NRGBA{R: 76, G: 132, B: 214, A: 120}
+								return ed.Layout(gtx)
+							}),
 							)
 						})
 					}),

@@ -78,8 +78,8 @@ func TestDeleteSelected_UpdatesPreviewToCurrentSelection(t *testing.T) {
 		t.Fatalf("selected = %d, want 0", ui.selected)
 	}
 	want := previewForHistory(ui.history[0])
-	if ui.preview != want {
-		t.Fatalf("preview = %q, want %q", ui.preview, want)
+	if ui.previewText != want {
+		t.Fatalf("preview = %q, want %q", ui.previewText, want)
 	}
 }
 
@@ -126,8 +126,8 @@ func TestApplyAskResult_HistoryAppendFailureKeepsPreviewWithWarning(t *testing.T
 		historyErr: errors.New("disk full"),
 	})
 
-	if ui.preview != "answer text" {
-		t.Fatalf("preview = %q, want answer text", ui.preview)
+	if ui.previewText != "answer text" {
+		t.Fatalf("preview = %q, want answer text", ui.previewText)
 	}
 	if !strings.Contains(ui.status, "history append failed") {
 		t.Fatalf("status = %q, want append warning", ui.status)
@@ -290,11 +290,14 @@ func TestStatusLine_ShowsSpinnerWhileRunning(t *testing.T) {
 	}
 }
 
-func TestPreviewPanel_UsesVerticalListForScrollableContent(t *testing.T) {
+func TestPreviewPanel_UsesReadOnlyMultilineEditor(t *testing.T) {
 	// @req CLI-ASKWRAPPER-018
 	ui := newAskUI(nil, time.Second, false)
-	if ui.previewList.List.Axis != layout.Vertical {
-		t.Fatalf("preview list axis = %v, want %v", ui.previewList.List.Axis, layout.Vertical)
+	if ui.preview.SingleLine {
+		t.Fatal("preview should support multiple lines")
+	}
+	if !ui.preview.ReadOnly {
+		t.Fatal("preview should be read-only")
 	}
 }
 

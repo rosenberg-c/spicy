@@ -44,18 +44,18 @@ type askUI struct {
 	historyClicks []widget.Clickable
 	historyDelete []widget.Clickable
 	historyList   widget.List
-	previewList   widget.List
 	selected      int
 	modeFollowUp  bool
 
 	question widget.Editor
+	preview  widget.Editor
 	submit   widget.Clickable
 	modeEnum widget.Enum
 
-	running   bool
-	preview   string
-	status    string
-	runCancel context.CancelFunc
+	running     bool
+	previewText string
+	status      string
+	runCancel   context.CancelFunc
 
 	resultCh              chan askResult
 	focusInputOnNextFrame bool
@@ -104,7 +104,7 @@ func newAskUI(history []askwrapper.HistoryEntry, timeout time.Duration, followUp
 		historyList:           widget.List{List: layout.List{Axis: layout.Vertical}},
 		selected:              -1,
 		modeFollowUp:          followUp,
-		preview:               "",
+		previewText:           "",
 		status:                "",
 		resultCh:              make(chan askResult, 1),
 		focusInputOnNextFrame: true,
@@ -119,7 +119,9 @@ func newAskUI(history []askwrapper.HistoryEntry, timeout time.Duration, followUp
 	}
 	ui.question.SingleLine = true
 	ui.question.Submit = true
-	ui.previewList.List.Axis = layout.Vertical
+	ui.preview.ReadOnly = true
+	ui.preview.SingleLine = false
+	ui.preview.Submit = false
 	return ui
 }
 
