@@ -70,6 +70,9 @@ Status values:
 | `HAM-ASK-012` | Automated | - | Gap | - |
 | `CORE-HIST-001` | Automated | `cli/internal/history/history_test.go` (`TestListReturnsNewestFirst`) | Covered | - |
 | `CORE-HIST-002` | Automated | `cli/cmd/history/main_test.go` (`TestFormatEntryAsMarkdown`) | Covered | - |
+| `IMGWALKER-001` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestStartupConfig_Defaults`) | Covered | - |
+| `IMGWALKER-002` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestHelloText_IsExact`) | Covered | - |
+| `IMGWALKER-003` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestTheme_UsesAskwrapperPalette`) | Covered | - |
 | `NVIM-CONFIG-001` | Automated | `nvim/tests/config_spec.lua` (`should load default config`) | Covered | - |
 | `NVIM-CONFIG-002` | Automated | `nvim/tests/config_spec.lua` (`should get nested values with dot notation`) | Covered | - |
 | `NVIM-CONFIG-003` | Automated | `nvim/tests/config_spec.lua` (`should reject invalid models type`) | Covered | - |
