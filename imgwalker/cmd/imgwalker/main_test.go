@@ -5,11 +5,14 @@ import (
 	"image/color"
 	"io/fs"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
 
 	"gioui.org/io/key"
+	"gioui.org/widget"
 )
 
 func TestStartupConfig_Defaults(t *testing.T) {
@@ -436,6 +439,477 @@ func TestSelectedIndexAfterClickedIndexes_ClickSetsSelection(t *testing.T) {
 				t.Fatalf("selectedIndexAfterClickedIndexes(%d,%d,%v) = %d, want %d", tc.current, tc.total, tc.clicked, got, tc.wantSelection)
 			}
 		})
+	}
+}
+
+func TestApplyShortcutKey_JKDoNotSkipMiddleInThreeItems(t *testing.T) {
+	// @req IMGWALKER-017
+	start := 0
+	next, action := applyShortcutKey(start, 3, false, key.Event{Name: key.Name("j"), State: key.Press})
+	if action != shortcutActionNone {
+		t.Fatalf("applyShortcutKey(j) action = %v, want %v", action, shortcutActionNone)
+	}
+	if next != 1 {
+		t.Fatalf("applyShortcutKey(j) index = %d, want 1", next)
+	}
+
+	back, backAction := applyShortcutKey(2, 3, false, key.Event{Name: key.Name("k"), State: key.Press})
+	if backAction != shortcutActionNone {
+		t.Fatalf("applyShortcutKey(k) action = %v, want %v", backAction, shortcutActionNone)
+	}
+	if back != 1 {
+		t.Fatalf("applyShortcutKey(k) index = %d, want 1", back)
+	}
+}
+
+func TestApplyShortcutKey_DeleteArmConfirmAndEscape(t *testing.T) {
+	// @req IMGWALKER-029, IMGWALKER-030, IMGWALKER-031, IMGWALKER-032
+	tests := []struct {
+		name          string
+		event         key.Event
+		deleteArmed   bool
+		wantAction    shortcutAction
+		wantSameIndex bool
+	}{
+		{name: "d arms delete", event: key.Event{Name: key.Name("d"), State: key.Press}, deleteArmed: false, wantAction: shortcutActionArmDelete, wantSameIndex: true},
+		{name: "D arms delete", event: key.Event{Name: key.Name("D"), State: key.Press}, deleteArmed: false, wantAction: shortcutActionArmDelete, wantSameIndex: true},
+		{name: "enter confirms only when armed", event: key.Event{Name: key.NameEnter, State: key.Press}, deleteArmed: true, wantAction: shortcutActionConfirmDelete, wantSameIndex: true},
+		{name: "enter is no-op when not armed", event: key.Event{Name: key.NameEnter, State: key.Press}, deleteArmed: false, wantAction: shortcutActionNone, wantSameIndex: true},
+		{name: "escape cancels when armed", event: key.Event{Name: key.NameEscape, State: key.Press}, deleteArmed: true, wantAction: shortcutActionCancelDelete, wantSameIndex: true},
+		{name: "escape no-op when not armed", event: key.Event{Name: key.NameEscape, State: key.Press}, deleteArmed: false, wantAction: shortcutActionNone, wantSameIndex: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotIndex, gotAction := applyShortcutKey(2, 5, tc.deleteArmed, tc.event)
+			if tc.wantSameIndex && gotIndex != 2 {
+				t.Fatalf("applyShortcutKey() index = %d, want 2", gotIndex)
+			}
+			if gotAction != tc.wantAction {
+				t.Fatalf("applyShortcutKey() action = %v, want %v", gotAction, tc.wantAction)
+			}
+		})
+	}
+}
+
+func TestApplyShortcutKey_ActionKeys(t *testing.T) {
+	// @req IMGWALKER-033, IMGWALKER-034, IMGWALKER-035, IMGWALKER-036, IMGWALKER-037, IMGWALKER-040
+	tests := []struct {
+		name       string
+		keyName    key.Name
+		wantAction shortcutAction
+	}{
+		{name: "p triggers copy path", keyName: key.Name("p"), wantAction: shortcutActionCopyPath},
+		{name: "c triggers copy image", keyName: key.Name("c"), wantAction: shortcutActionCopyImage},
+		{name: "o triggers open", keyName: key.Name("o"), wantAction: shortcutActionOpen},
+		{name: "f triggers reveal", keyName: key.Name("f"), wantAction: shortcutActionReveal},
+		{name: "r triggers reload", keyName: key.Name("r"), wantAction: shortcutActionReload},
+		{name: "m triggers move", keyName: key.Name("m"), wantAction: shortcutActionMove},
+		{name: "M triggers move", keyName: key.Name("M"), wantAction: shortcutActionMove},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, gotAction := applyShortcutKey(0, 3, false, key.Event{Name: tc.keyName, State: key.Press})
+			if gotAction != tc.wantAction {
+				t.Fatalf("applyShortcutKey() action = %v, want %v", gotAction, tc.wantAction)
+			}
+		})
+	}
+}
+
+func TestClearDeleteArmOnSelectionChange(t *testing.T) {
+	// @req IMGWALKER-041
+	tests := []struct {
+		name              string
+		deleteArmed       bool
+		previousSelection int
+		nextSelection     int
+		wantDeleteArmed   bool
+	}{
+		{name: "not armed stays false", deleteArmed: false, previousSelection: 1, nextSelection: 2, wantDeleteArmed: false},
+		{name: "armed clears when selection changes", deleteArmed: true, previousSelection: 1, nextSelection: 2, wantDeleteArmed: false},
+		{name: "armed remains when selection unchanged", deleteArmed: true, previousSelection: 1, nextSelection: 1, wantDeleteArmed: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := clearDeleteArmOnSelectionChange(tc.deleteArmed, tc.previousSelection, tc.nextSelection)
+			if got != tc.wantDeleteArmed {
+				t.Fatalf("clearDeleteArmOnSelectionChange() = %t, want %t", got, tc.wantDeleteArmed)
+			}
+		})
+	}
+}
+
+func TestReloadImages_RefreshesListAndSelection(t *testing.T) {
+	// @req IMGWALKER-040
+	state := &appState{
+		imageDir:      "/images",
+		images:        []string{"old.png", "z.png"},
+		itemClicks:    make([]widget.Clickable, 2),
+		selectedIndex: 1,
+		listLoadError: "x",
+	}
+	err := reloadImages(state, func(string) ([]os.DirEntry, error) {
+		return []os.DirEntry{stubDirEntry{name: "a.png"}}, nil
+	})
+	if err != nil {
+		t.Fatalf("reloadImages error: %v", err)
+	}
+	if !reflect.DeepEqual(state.images, []string{"a.png"}) {
+		t.Fatalf("state.images = %#v, want %#v", state.images, []string{"a.png"})
+	}
+	if len(state.itemClicks) != 1 {
+		t.Fatalf("itemClicks len = %d, want 1", len(state.itemClicks))
+	}
+	if state.selectedIndex != 0 {
+		t.Fatalf("selectedIndex = %d, want 0", state.selectedIndex)
+	}
+	if state.listLoadError != "" {
+		t.Fatalf("listLoadError = %q, want empty", state.listLoadError)
+	}
+}
+
+func TestDeleteConfirmText_IsExact(t *testing.T) {
+	// @req IMGWALKER-038
+	want := "Delete selected image? Press Enter to confirm or Esc to cancel."
+	if uiText.DeleteConfirm != want {
+		t.Fatalf("uiText.DeleteConfirm = %q, want %q", uiText.DeleteConfirm, want)
+	}
+}
+
+func TestCopyTextToClipboard_PathUsesClipboardCommand(t *testing.T) {
+	// @req IMGWALKER-033
+	called := 0
+	lastName := ""
+	lastInput := ""
+	err := copyTextToClipboard("/tmp/image.png", func(name string, args []string, stdin []byte) error {
+		called++
+		lastName = name
+		lastInput = string(stdin)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("copyTextToClipboard error: %v", err)
+	}
+	if called != 1 {
+		t.Fatalf("clipboard command calls = %d, want 1", called)
+	}
+	if lastName == "" {
+		t.Fatal("clipboard command name empty")
+	}
+	if lastInput != "/tmp/image.png" {
+		t.Fatalf("clipboard input = %q, want %q", lastInput, "/tmp/image.png")
+	}
+}
+
+func TestCopyTextToClipboard_EmptyTextReturnsError(t *testing.T) {
+	err := copyTextToClipboard("", func(name string, args []string, stdin []byte) error {
+		return nil
+	})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
+func TestCopyImageToClipboard_UsesMimeAndPayload(t *testing.T) {
+	// @req IMGWALKER-034
+	called := 0
+	var gotArgs []string
+	var gotInput []byte
+	err := copyImageToClipboard(
+		"/tmp/a.png",
+		func(string) ([]byte, error) { return []byte("PNGDATA"), nil },
+		func(name string, args []string, stdin []byte) error {
+			called++
+			gotArgs = append([]string(nil), args...)
+			gotInput = append([]byte(nil), stdin...)
+			return nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("copyImageToClipboard error: %v", err)
+	}
+	if called != 1 {
+		t.Fatalf("clipboard command calls = %d, want 1", called)
+	}
+	if !reflect.DeepEqual(gotArgs, []string{"--type", "image/png"}) {
+		t.Fatalf("clipboard args = %#v, want %#v", gotArgs, []string{"--type", "image/png"})
+	}
+	if string(gotInput) != "PNGDATA" {
+		t.Fatalf("clipboard input = %q, want %q", string(gotInput), "PNGDATA")
+	}
+}
+
+func TestImageMimeType_SupportedExtensions(t *testing.T) {
+	tests := []struct {
+		path string
+		want string
+		ok   bool
+	}{
+		{path: "a.png", want: "image/png", ok: true},
+		{path: "a.JPG", want: "image/jpeg", ok: true},
+		{path: "a.webp", want: "image/webp", ok: true},
+		{path: "a.txt", want: "", ok: false},
+	}
+
+	for _, tc := range tests {
+		got, ok := imageMimeType(tc.path)
+		if got != tc.want || ok != tc.ok {
+			t.Fatalf("imageMimeType(%q) = (%q,%t), want (%q,%t)", tc.path, got, ok, tc.want, tc.ok)
+		}
+	}
+}
+
+func TestMoveSelectedImage_MovesFileAndRemovesRow(t *testing.T) {
+	// @req IMGWALKER-039
+	srcDir := t.TempDir()
+	dstDir := t.TempDir()
+	srcFile := filepath.Join(srcDir, "a.png")
+	if err := os.WriteFile(srcFile, []byte("A"), 0o644); err != nil {
+		t.Fatalf("write source: %v", err)
+	}
+
+	state := &appState{
+		imageDir:      srcDir,
+		images:        []string{"a.png"},
+		itemClicks:    make([]widget.Clickable, 1),
+		selectedIndex: 0,
+	}
+
+	moved, err := moveSelectedImage(
+		state,
+		func() (string, error) { return dstDir, nil },
+		os.Rename,
+	)
+	if err != nil {
+		t.Fatalf("moveSelectedImage error: %v", err)
+	}
+	if !moved {
+		t.Fatal("moveSelectedImage moved = false, want true")
+	}
+	if _, err := os.Stat(filepath.Join(dstDir, "a.png")); err != nil {
+		t.Fatalf("dest stat error: %v", err)
+	}
+	if len(state.images) != 0 {
+		t.Fatalf("state.images len = %d, want 0", len(state.images))
+	}
+}
+
+func TestMoveSelectedImage_CancelledPickerDoesNotMutate(t *testing.T) {
+	// @req IMGWALKER-039
+	state := &appState{
+		imageDir:      "/tmp/images",
+		images:        []string{"a.png", "b.png"},
+		itemClicks:    make([]widget.Clickable, 2),
+		selectedIndex: 1,
+	}
+
+	moved, err := moveSelectedImage(
+		state,
+		func() (string, error) { return "", errPickerCancelled },
+		func(string, string) error { return nil },
+	)
+	if moved {
+		t.Fatal("moveSelectedImage moved = true, want false")
+	}
+	if !errors.Is(err, errPickerCancelled) {
+		t.Fatalf("moveSelectedImage err = %v, want errPickerCancelled", err)
+	}
+	if !reflect.DeepEqual(state.images, []string{"a.png", "b.png"}) {
+		t.Fatalf("state.images changed: %#v", state.images)
+	}
+}
+
+func TestSelectDestinationDirectoryWithRunner_MissingFirstPickerFallsBack(t *testing.T) {
+	called := []string{}
+	dir, err := selectDestinationDirectoryWithRunner(func(name string, args []string) (string, error) {
+		called = append(called, name)
+		if name == "zenity" {
+			return "", exec.ErrNotFound
+		}
+		if name == "kdialog" {
+			return "/tmp/dst\n", nil
+		}
+		return "", errors.New("unexpected command")
+	})
+	if err != nil {
+		t.Fatalf("selectDestinationDirectoryWithRunner error: %v", err)
+	}
+	if dir != "/tmp/dst" {
+		t.Fatalf("dir = %q, want %q", dir, "/tmp/dst")
+	}
+	if !reflect.DeepEqual(called, []string{"zenity", "kdialog"}) {
+		t.Fatalf("called = %#v, want %#v", called, []string{"zenity", "kdialog"})
+	}
+}
+
+func TestSelectDestinationDirectoryWithRunner_CancelDoesNotFallback(t *testing.T) {
+	called := []string{}
+	dir, err := selectDestinationDirectoryWithRunner(func(name string, args []string) (string, error) {
+		called = append(called, name)
+		if name == "zenity" {
+			return "", errPickerCancelled
+		}
+		return "/tmp/dst\n", nil
+	})
+	if dir != "" {
+		t.Fatalf("dir = %q, want empty", dir)
+	}
+	if !errors.Is(err, errPickerCancelled) {
+		t.Fatalf("err = %v, want errPickerCancelled", err)
+	}
+	if !reflect.DeepEqual(called, []string{"zenity"}) {
+		t.Fatalf("called = %#v, want %#v", called, []string{"zenity"})
+	}
+}
+
+func TestSelectDestinationDirectoryWithRunner_EmptyOutputIsCancelled(t *testing.T) {
+	dir, err := selectDestinationDirectoryWithRunner(func(name string, args []string) (string, error) {
+		return "   \n", nil
+	})
+	if dir != "" {
+		t.Fatalf("dir = %q, want empty", dir)
+	}
+	if !errors.Is(err, errPickerCancelled) {
+		t.Fatalf("err = %v, want errPickerCancelled", err)
+	}
+}
+
+func TestIsPickerCancelExitCode(t *testing.T) {
+	tests := []struct {
+		name      string
+		command   string
+		exitCode  int
+		cancelled bool
+	}{
+		{name: "zenity cancel code", command: "zenity", exitCode: 1, cancelled: true},
+		{name: "kdialog cancel code", command: "kdialog", exitCode: 1, cancelled: true},
+		{name: "zenity failure code", command: "zenity", exitCode: 2, cancelled: false},
+		{name: "unknown command", command: "other", exitCode: 1, cancelled: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := isPickerCancelExitCode(tc.command, tc.exitCode)
+			if got != tc.cancelled {
+				t.Fatalf("isPickerCancelExitCode(%q, %d) = %t, want %t", tc.command, tc.exitCode, got, tc.cancelled)
+			}
+		})
+	}
+}
+
+func TestSelectedPathOrNoSelection(t *testing.T) {
+	t.Run("returns path when selected", func(t *testing.T) {
+		state := &appState{imageDir: "/tmp", images: []string{"a.png"}, selectedIndex: 0}
+		path, ok := selectedPathOrNoSelection(state)
+		if !ok {
+			t.Fatal("ok = false, want true")
+		}
+		if path != "/tmp/a.png" {
+			t.Fatalf("path = %q, want %q", path, "/tmp/a.png")
+		}
+		if state.actionMessage != "" {
+			t.Fatalf("actionMessage = %q, want empty", state.actionMessage)
+		}
+	})
+
+	t.Run("sets no selection message", func(t *testing.T) {
+		state := &appState{imageDir: "/tmp", images: nil, selectedIndex: 0}
+		path, ok := selectedPathOrNoSelection(state)
+		if ok {
+			t.Fatal("ok = true, want false")
+		}
+		if path != "" {
+			t.Fatalf("path = %q, want empty", path)
+		}
+		if state.actionMessage != uiText.NoSelection {
+			t.Fatalf("actionMessage = %q, want %q", state.actionMessage, uiText.NoSelection)
+		}
+	})
+}
+
+func TestOpenFileWithDefaultApp_UsesRunner(t *testing.T) {
+	// @req IMGWALKER-035
+	called := 0
+	var gotName string
+	var gotArgs []string
+	err := openFileWithDefaultApp("/tmp/a.png", func(name string, args []string) error {
+		called++
+		gotName = name
+		gotArgs = append([]string(nil), args...)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("openFileWithDefaultApp error: %v", err)
+	}
+	if called != 1 {
+		t.Fatalf("runner calls = %d, want 1", called)
+	}
+	if gotName == "" {
+		t.Fatal("runner command name empty")
+	}
+	if !reflect.DeepEqual(gotArgs, []string{"/tmp/a.png"}) {
+		t.Fatalf("runner args = %#v, want %#v", gotArgs, []string{"/tmp/a.png"})
+	}
+}
+
+func TestRevealFileInManager_UsesRunner(t *testing.T) {
+	// @req IMGWALKER-036
+	called := 0
+	var gotName string
+	var gotArgs []string
+	err := revealFileInManager("/tmp/a.png", func(name string, args []string) error {
+		called++
+		gotName = name
+		gotArgs = append([]string(nil), args...)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("revealFileInManager error: %v", err)
+	}
+	if called != 1 {
+		t.Fatalf("runner calls = %d, want 1", called)
+	}
+	if gotName == "" {
+		t.Fatal("runner command name empty")
+	}
+	if len(gotArgs) == 0 {
+		t.Fatal("runner args empty")
+	}
+}
+
+func TestDeleteSelectedImage_RemovesSelectedFileAndRow(t *testing.T) {
+	tmp := t.TempDir()
+	first := filepath.Join(tmp, "a.png")
+	second := filepath.Join(tmp, "b.png")
+	if err := os.WriteFile(first, []byte("a"), 0o644); err != nil {
+		t.Fatalf("write first: %v", err)
+	}
+	if err := os.WriteFile(second, []byte("b"), 0o644); err != nil {
+		t.Fatalf("write second: %v", err)
+	}
+
+	state := &appState{
+		imageDir:      tmp,
+		images:        []string{"a.png", "b.png"},
+		itemClicks:    make([]widget.Clickable, 2),
+		selectedIndex: 0,
+	}
+
+	deleted, err := deleteSelectedImage(state, os.Remove)
+	if err != nil {
+		t.Fatalf("deleteSelectedImage() error = %v, want nil", err)
+	}
+	if !deleted {
+		t.Fatal("deleteSelectedImage() = false, want true")
+	}
+	if _, err := os.Stat(first); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("deleted file stat err = %v, want not exist", err)
+	}
+	if got := state.images; !reflect.DeepEqual(got, []string{"b.png"}) {
+		t.Fatalf("state.images = %#v, want %#v", got, []string{"b.png"})
 	}
 }
 

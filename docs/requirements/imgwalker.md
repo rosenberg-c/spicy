@@ -111,3 +111,55 @@ When one or more images are discovered in `imageDir`, the right preview pane mus
 ### `IMGWALKER-026`
 
 When reading image entries from `imageDir` fails at runtime, the left pane must render a lightweight inline error message and continue rendering the empty-state/list area.
+
+### `IMGWALKER-029`
+
+Pressing `d` must arm a pending delete confirmation state for the currently selected image.
+
+### `IMGWALKER-030`
+
+Pressing `Enter` must confirm deletion only when delete confirmation is armed; when not armed, `Enter` must not delete.
+
+### `IMGWALKER-031`
+
+When delete confirmation is armed, pressing `Escape` must cancel the pending delete confirmation state.
+
+### `IMGWALKER-032`
+
+When delete confirmation is not armed, pressing `Escape` must not mutate selection or delete state.
+
+### `IMGWALKER-033`
+
+Pressing `p` must copy the currently selected image full filesystem path to the system clipboard.
+
+### `IMGWALKER-034`
+
+Pressing `c` must copy the currently selected image data to the system clipboard.
+
+### `IMGWALKER-035`
+
+Pressing `o` must open the currently selected image file in the system default app.
+
+### `IMGWALKER-036`
+
+Pressing `f` must trigger the reveal-selected-file action for the currently selected image.
+
+### `IMGWALKER-037`
+
+Pressing `m` or `M` must trigger the move-selected-file action for the currently selected image.
+
+### `IMGWALKER-038`
+
+When delete confirmation is armed, the UI must render a visible confirmation dialog that instructs the user to press `Enter` to confirm deletion or `Escape` to cancel.
+
+### `IMGWALKER-039`
+
+Pressing `m` or `M` must open an OS-native directory picker dialog to choose the destination folder for moving the selected image; cancelling the dialog must leave files unchanged.
+
+### `IMGWALKER-040`
+
+Pressing `r` must reload image entries from the configured `imageDir` and refresh list state.
+
+### `IMGWALKER-041`
+
+When delete confirmation is armed, changing the selected image (keyboard or click selection change) must cancel the pending delete confirmation state.

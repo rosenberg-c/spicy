@@ -12,6 +12,7 @@ this tooling suite forward, especially `tutor` and `explain`.
 - `cli/` - The Spicy CLI tools (Go)
 - `nvim/` - The spicy.nvim Neovim plugin
 - `hammerspoon/` - The Hammerspoon module that wraps `spicy ask`
+- `imgwalker/` - Image browser desktop app (Gio)
 
 Quick setup:
 
@@ -62,6 +63,15 @@ make sync-test-matrix
 - History browser with inline previews and delete shortcuts
 - Lightweight spinner UI while running `ask`
 - See `hammerspoon/README.md` for setup and usage
+
+### ImgWalker (`imgwalker/`)
+
+- Keyboard-driven image browser UI built with Gio.
+- The `p` shortcut copies the selected image path to system clipboard.
+- The `m` shortcut opens an OS directory picker and moves the selected image.
+- Linux clipboard dependency: install `wl-clipboard` (`wl-copy`) for Wayland or `xclip` for X11.
+- Linux move-picker dependency: install `zenity` (preferred) or `kdialog`.
+- XFCE shortcut fallback command: `/bin/bash -lc 'source "$HOME/.bashprofile"; imgwalker'`.
 
 ## CLI
 

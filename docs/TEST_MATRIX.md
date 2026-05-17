@@ -89,7 +89,7 @@ Status values:
 | `IMGWALKER-015` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListImageFiles_FiltersAndSortsSupportedImages`) | Covered | - |
 | `IMGWALKER-015-A` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListImageFiles_FiltersAndSortsSupportedImages`) | Covered | - |
 | `IMGWALKER-016` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestNoImagesText_IsExact`) | Covered | - |
-| `IMGWALKER-017` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestNextSelectionIndex_JAndKMoveWithinBounds`) | Covered | - |
+| `IMGWALKER-017` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_JKDoNotSkipMiddleInThreeItems`), `imgwalker/cmd/imgwalker/main_test.go` (`TestNextSelectionIndex_JAndKMoveWithinBounds`) | Covered | - |
 | `IMGWALKER-018` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListRowColors_SelectedDiffersFromDefault`) | Covered | - |
 | `IMGWALKER-019` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestSelectedImagePath_ReturnsFullPathForSelection`) | Covered | - |
 | `IMGWALKER-020` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_ReadFailureReturnsIOError`) | Covered | - |
@@ -99,6 +99,19 @@ Status values:
 | `IMGWALKER-024` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPaneDividerColor_IsVisibleAndStable`) | Covered | - |
 | `IMGWALKER-025` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewPaneText_DefaultsToFirstImageWhenSelectionInvalid`) | Covered | - |
 | `IMGWALKER-026` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListLoadErrorMessage`) | Covered | - |
+| `IMGWALKER-029` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |
+| `IMGWALKER-030` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |
+| `IMGWALKER-031` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |
+| `IMGWALKER-032` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |
+| `IMGWALKER-033` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`), `imgwalker/cmd/imgwalker/main_test.go` (`TestCopyTextToClipboard_PathUsesClipboardCommand`) | Covered | - |
+| `IMGWALKER-034` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`), `imgwalker/cmd/imgwalker/main_test.go` (`TestCopyImageToClipboard_UsesMimeAndPayload`) | Covered | - |
+| `IMGWALKER-035` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`), `imgwalker/cmd/imgwalker/main_test.go` (`TestOpenFileWithDefaultApp_UsesRunner`) | Covered | - |
+| `IMGWALKER-036` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`), `imgwalker/cmd/imgwalker/main_test.go` (`TestRevealFileInManager_UsesRunner`) | Covered | - |
+| `IMGWALKER-037` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`) | Covered | - |
+| `IMGWALKER-038` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestDeleteConfirmText_IsExact`) | Covered | - |
+| `IMGWALKER-039` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestMoveSelectedImage_CancelledPickerDoesNotMutate`), `imgwalker/cmd/imgwalker/main_test.go` (`TestMoveSelectedImage_MovesFileAndRemovesRow`) | Covered | - |
+| `IMGWALKER-040` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_ActionKeys`), `imgwalker/cmd/imgwalker/main_test.go` (`TestReloadImages_RefreshesListAndSelection`) | Covered | - |
+| `IMGWALKER-041` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestClearDeleteArmOnSelectionChange`) | Covered | - |
 | `NVIM-CONFIG-001` | Automated | `nvim/tests/config_spec.lua` (`should load default config`) | Covered | - |
 | `NVIM-CONFIG-002` | Automated | `nvim/tests/config_spec.lua` (`should get nested values with dot notation`) | Covered | - |
 | `NVIM-CONFIG-003` | Automated | `nvim/tests/config_spec.lua` (`should reject invalid models type`) | Covered | - |
