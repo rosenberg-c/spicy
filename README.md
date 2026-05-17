@@ -125,7 +125,7 @@ Default hotkeys:
 
 - `alt+shift+A` -> `askwrapper ui ask`
 - `alt+shift+S` -> `askwrapper ui followup`
-- `alt+shift+I` -> `askwrapper imgwalker`
+- `alt+shift+D` -> `imgwalker`
 
 Setup (symlink into your Hammerspoon config):
 

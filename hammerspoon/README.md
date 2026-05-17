@@ -25,7 +25,7 @@ Reload Hammerspoon after saving.
 
 - `alt+shift+A` - launch `askwrapper ui ask` directly
 - `alt+shift+S` - launch `askwrapper ui followup` directly
-- `alt+shift+I` - launch `askwrapper imgwalker`
+- `alt+shift+D` - launch `imgwalker`
 
 ## History
 
@@ -33,5 +33,5 @@ History is stored at `~/.askwrapper/history.json` and managed by the Go UI.
 
 ## Notes
 
-- Hammerspoon is only responsible for hotkeys + launching askwrapper.
-- All ask/follow-up UI behavior now lives in the Go `askwrapper` command.
+- Hammerspoon is only responsible for hotkeys + launching commands.
+- Ask/follow-up UI behavior lives in the Go `askwrapper` command.

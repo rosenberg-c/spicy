@@ -30,6 +30,12 @@ func TestHammerspoonLaunchesAskwrapperOnly(t *testing.T) {
 	if !strings.Contains(content, `launchAskwrapper({ "ui", "followup" })`) {
 		t.Fatal("missing alt+shift+S askwrapper ui followup launcher")
 	}
+	if !strings.Contains(content, `launchImgwalker()`) {
+		t.Fatal("missing alt+shift+D imgwalker launcher")
+	}
+	if !strings.Contains(content, `hs.hotkey.bind({ "alt", "shift" }, "D"`) {
+		t.Fatal("missing alt+shift+D hotkey binding")
+	}
 
 	if strings.Contains(content, "runAsk") {
 		t.Fatal("hammerspoon module appears to embed ask execution logic")
