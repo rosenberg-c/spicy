@@ -35,7 +35,7 @@ Status values:
 | `CLI-ASKWRAPPER-015` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestHelpText_CommunicatesModeAndDeleteShortcut`) | Covered | - |
 | `CLI-ASKWRAPPER-016` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_RemovesEntryImmediatelyWithoutUndo`) | Covered | - |
 | `CLI-ASKWRAPPER-017` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestCancelAsk_CallsCancelAndUpdatesStatus`) | Covered | - |
-| `CLI-ASKWRAPPER-018` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestPreviewPanel_UsesVerticalListForScrollableContent`) | Covered | - |
+| `CLI-ASKWRAPPER-018` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestPreviewPanel_UsesReadOnlyMultilineEditor`) | Covered | - |
 | `CLI-ASKWRAPPER-019` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestPrimaryLabel_SwitchesBetweenArrowAndCancel`) | Covered | - |
 | `CLI-ASKWRAPPER-020` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_UpdatesPreviewToCurrentSelection`), `cli/internal/askwrapperui/ask_test.go` (`TestHistoryRowDeleteAction_IsExplicitPerRow`) | Covered | - |
 | `CLI-ASKWRAPPER-021` | Automated | `cli/internal/askwrapperui/ask_test.go` (`TestDeleteSelected_UpdatesPreviewToCurrentSelection`) | Covered | - |
