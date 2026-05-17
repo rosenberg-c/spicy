@@ -6,6 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"image/color"
 	"log"
 	"os"
@@ -138,6 +141,8 @@ type appState struct {
 	selectedIndex int
 	deleteArmed   bool
 	actionMessage string
+	previewPath   string
+	previewImage  image.Image
 }
 
 type shortcutAction int
@@ -579,6 +584,8 @@ func reloadImages(state *appState, readDir func(string) ([]os.DirEntry, error)) 
 	images, err := listImageFiles(state.imageDir, readDir)
 	state.images = images
 	state.itemClicks = make([]widget.Clickable, len(images))
+	state.previewPath = ""
+	state.previewImage = nil
 	if err != nil {
 		state.listLoadError = listLoadErrorMessage(err)
 		state.selectedIndex = 0
@@ -1057,13 +1064,44 @@ func renderPreviewPane(gtx layout.Context, theme *material.Theme, state *appStat
 	paint.FillShape(gtx.Ops, theme.Palette.Bg, clip.Rect{Max: gtx.Constraints.Max}.Op())
 
 	return layout.UniformInset(unit.Dp(12)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		label := material.Body1(theme, previewPaneText(state.imageDir, state.images, state.selectedIndex))
-		label.Color = theme.Palette.Fg
-		return label.Layout(gtx)
+		previewPath := previewSourcePath(state.imageDir, state.images, state.selectedIndex)
+		if previewPath == "" {
+			return layout.Dimensions{}
+		}
+
+		if previewPath != state.previewPath {
+			state.previewPath = previewPath
+			var err error
+			state.previewImage, err = loadPreviewImage(previewPath, os.ReadFile)
+			if err != nil {
+				log.Printf("imgwalker: preview image unavailable %q: %v", previewPath, err)
+			}
+		}
+
+		if state.previewImage == nil {
+			return layout.Dimensions{}
+		}
+
+		img := widget.Image{Src: paint.NewImageOp(state.previewImage), Fit: widget.Contain}
+		return img.Layout(gtx)
 	})
 }
 
-func previewPaneText(imageDir string, images []string, selectedIndex int) string {
+func loadPreviewImage(path string, readFile func(string) ([]byte, error)) (image.Image, error) {
+	data, err := readFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read preview image: %w", err)
+	}
+
+	decoded, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("decode preview image: %w", err)
+	}
+
+	return decoded, nil
+}
+
+func previewSourcePath(imageDir string, images []string, selectedIndex int) string {
 	if len(images) == 0 {
 		return ""
 	}

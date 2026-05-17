@@ -82,7 +82,7 @@ The left image list must visually differentiate the selected item with a distinc
 
 ### `IMGWALKER-019`
 
-When an image is selected in the left pane, the right preview pane must display that image's full filesystem path.
+When an image is selected in the left pane and its file can be read and decoded, the right preview pane must render the decoded image.
 
 ### `IMGWALKER-020`
 
@@ -90,7 +90,7 @@ When reading `$HOME/.config/spicy/imgwalker.json` fails for reasons other than m
 
 ### `IMGWALKER-021`
 
-When no image files are discovered in `imageDir`, the right preview pane must render empty text.
+When no image files are discovered in `imageDir`, the right preview pane must render no image widget.
 
 ### `IMGWALKER-022`
 
@@ -106,11 +106,15 @@ The main view must render a visible vertical delimiter between the left list pan
 
 ### `IMGWALKER-025`
 
-When one or more images are discovered in `imageDir`, the right preview pane must default to showing the first image path when current selection is invalid.
+When one or more images are discovered in `imageDir`, and the current selection is invalid, the right preview pane must use index `0` as the preview source.
 
 ### `IMGWALKER-026`
 
 When reading image entries from `imageDir` fails at runtime, the left pane must render a lightweight inline error message and continue rendering the empty-state/list area.
+
+### `IMGWALKER-027`
+
+When reading or decoding the preview source image fails, the right preview pane must render no image widget.
 
 ### `IMGWALKER-029`
 

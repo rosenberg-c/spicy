@@ -91,14 +91,15 @@ Status values:
 | `IMGWALKER-016` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestNoImagesText_IsExact`) | Covered | - |
 | `IMGWALKER-017` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_JKDoNotSkipMiddleInThreeItems`), `imgwalker/cmd/imgwalker/main_test.go` (`TestNextSelectionIndex_JAndKMoveWithinBounds`) | Covered | - |
 | `IMGWALKER-018` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListRowColors_SelectedDiffersFromDefault`) | Covered | - |
-| `IMGWALKER-019` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestSelectedImagePath_ReturnsFullPathForSelection`) | Covered | - |
+| `IMGWALKER-019` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadPreviewImage_DecodesValidImage`) | Covered | - |
 | `IMGWALKER-020` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadStartupFileConfig_ReadFailureReturnsIOError`) | Covered | - |
-| `IMGWALKER-021` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewPaneText_UsesEmptyTextWhenNoImages`) | Covered | - |
+| `IMGWALKER-021` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewSourcePath_UsesEmptySourceWhenNoImages`) | Covered | - |
 | `IMGWALKER-022` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestSelectedIndexAfterClickedIndexes_ClickSetsSelection`) | Covered | - |
 | `IMGWALKER-023` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListPaneBackgroundColor_UsesThemeBg`) | Covered | - |
 | `IMGWALKER-024` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPaneDividerColor_IsVisibleAndStable`) | Covered | - |
-| `IMGWALKER-025` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewPaneText_DefaultsToFirstImageWhenSelectionInvalid`) | Covered | - |
+| `IMGWALKER-025` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestPreviewSourcePath_DefaultsToFirstImageWhenSelectionInvalid`) | Covered | - |
 | `IMGWALKER-026` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestListLoadErrorMessage`) | Covered | - |
+| `IMGWALKER-027` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestLoadPreviewImage_ReturnsNilOnReadOrDecodeError`) | Covered | - |
 | `IMGWALKER-029` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |
 | `IMGWALKER-030` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |
 | `IMGWALKER-031` | Automated | `imgwalker/cmd/imgwalker/main_test.go` (`TestApplyShortcutKey_DeleteArmConfirmAndEscape`) | Covered | - |

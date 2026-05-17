@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"errors"
+	"image"
 	"image/color"
+	"image/png"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -394,26 +397,71 @@ func TestListRowColors_SelectedDiffersFromDefault(t *testing.T) {
 }
 
 func TestSelectedImagePath_ReturnsFullPathForSelection(t *testing.T) {
-	// @req IMGWALKER-019
 	got := selectedImagePath("/home/alex/screenshots", []string{"a.png", "b.jpg"}, 1)
 	if got != "/home/alex/screenshots/b.jpg" {
 		t.Fatalf("selectedImagePath = %q, want %q", got, "/home/alex/screenshots/b.jpg")
 	}
 }
 
-func TestPreviewPaneText_UsesEmptyTextWhenNoImages(t *testing.T) {
+func TestPreviewSourcePath_UsesEmptySourceWhenNoImages(t *testing.T) {
 	// @req IMGWALKER-021
-	got := previewPaneText("/home/alex/screenshots", nil, -1)
+	got := previewSourcePath("/home/alex/screenshots", nil, -1)
 	if got != "" {
-		t.Fatalf("previewPaneText = %q, want empty string", got)
+		t.Fatalf("previewSourcePath = %q, want empty string", got)
 	}
 }
 
-func TestPreviewPaneText_DefaultsToFirstImageWhenSelectionInvalid(t *testing.T) {
+func TestPreviewSourcePath_DefaultsToFirstImageWhenSelectionInvalid(t *testing.T) {
 	// @req IMGWALKER-025
-	got := previewPaneText("/home/alex/screenshots", []string{"a.png", "b.jpg"}, -1)
+	got := previewSourcePath("/home/alex/screenshots", []string{"a.png", "b.jpg"}, -1)
 	if got != "/home/alex/screenshots/a.png" {
-		t.Fatalf("previewPaneText = %q, want %q", got, "/home/alex/screenshots/a.png")
+		t.Fatalf("previewSourcePath = %q, want %q", got, "/home/alex/screenshots/a.png")
+	}
+}
+
+func TestLoadPreviewImage_DecodesValidImage(t *testing.T) {
+	// @req IMGWALKER-019
+	var encoded bytes.Buffer
+	src := image.NewNRGBA(image.Rect(0, 0, 2, 3))
+	if err := png.Encode(&encoded, src); err != nil {
+		t.Fatalf("encode png: %v", err)
+	}
+
+	decoded, err := loadPreviewImage("/tmp/sample.png", func(string) ([]byte, error) {
+		return encoded.Bytes(), nil
+	})
+	if err != nil {
+		t.Fatalf("loadPreviewImage returned unexpected error: %v", err)
+	}
+	if decoded == nil {
+		t.Fatal("loadPreviewImage returned nil for valid image")
+	}
+	b := decoded.Bounds()
+	if b.Dx() != 2 || b.Dy() != 3 {
+		t.Fatalf("decoded bounds = %v, want 2x3", b)
+	}
+}
+
+func TestLoadPreviewImage_ReturnsNilOnReadOrDecodeError(t *testing.T) {
+	// @req IMGWALKER-027
+	readImg, readErr := loadPreviewImage("/tmp/missing.png", func(string) ([]byte, error) {
+		return nil, errors.New("read failed")
+	})
+	if readImg != nil {
+		t.Fatalf("loadPreviewImage on read error returned image = %#v, want nil", readImg)
+	}
+	if readErr == nil {
+		t.Fatal("loadPreviewImage on read error returned nil error")
+	}
+
+	decodeImg, decodeErr := loadPreviewImage("/tmp/bad.png", func(string) ([]byte, error) {
+		return []byte("not-an-image"), nil
+	})
+	if decodeImg != nil {
+		t.Fatalf("loadPreviewImage on decode error returned image = %#v, want nil", decodeImg)
+	}
+	if decodeErr == nil {
+		t.Fatal("loadPreviewImage on decode error returned nil error")
 	}
 }
 
@@ -550,6 +598,8 @@ func TestReloadImages_RefreshesListAndSelection(t *testing.T) {
 		itemClicks:    make([]widget.Clickable, 2),
 		selectedIndex: 1,
 		listLoadError: "x",
+		previewPath:   "/images/old.png",
+		previewImage:  image.NewNRGBA(image.Rect(0, 0, 1, 1)),
 	}
 	err := reloadImages(state, func(string) ([]os.DirEntry, error) {
 		return []os.DirEntry{stubDirEntry{name: "a.png"}}, nil
@@ -568,6 +618,12 @@ func TestReloadImages_RefreshesListAndSelection(t *testing.T) {
 	}
 	if state.listLoadError != "" {
 		t.Fatalf("listLoadError = %q, want empty", state.listLoadError)
+	}
+	if state.previewPath != "" {
+		t.Fatalf("previewPath = %q, want empty", state.previewPath)
+	}
+	if state.previewImage != nil {
+		t.Fatalf("previewImage = %#v, want nil", state.previewImage)
 	}
 }
 
