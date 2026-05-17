@@ -40,7 +40,7 @@ After config load, startup validation must treat a non-existent `imageDir` path 
 
 After config load, startup validation must treat an `imageDir` path that exists but is not a directory as a typed `invalid image dir` error category.
 
-### `IMGWALKER-027`
+### `IMGWALKER-010-A`
 
 After config load, startup validation must treat non-`not found` filesystem errors while checking `imageDir` as a typed `invalid image dir` error category.
 
@@ -64,7 +64,7 @@ When `imageDir` is configured, the main view must render a two-pane layout with 
 
 The left pane must list image file names discovered from `imageDir`, including only files with extensions `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, and `.bmp` (case-insensitive).
 
-### `IMGWALKER-028`
+### `IMGWALKER-015-A`
 
 The left pane image list must be sorted in ascending filename order.
 

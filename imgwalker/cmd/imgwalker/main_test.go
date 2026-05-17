@@ -179,7 +179,7 @@ func TestValidateStartupFileConfig_ImageDirNotDirectoryReturnsInvalidImageDir(t 
 }
 
 func TestValidateStartupFileConfig_StatFailureReturnsInvalidImageDir(t *testing.T) {
-	// @req IMGWALKER-027
+	// @req IMGWALKER-010-A
 	_, err := validateStartupFileConfig(startupFileConfig{ImageDir: "/tmp/images"}, "/home/alex", "/work", func(string) (os.FileInfo, error) {
 		return nil, errors.New("permission denied")
 	})
@@ -301,7 +301,7 @@ func TestSplitPaneWidths_UsesLeftListAndRightPreviewWidths(t *testing.T) {
 }
 
 func TestListImageFiles_FiltersAndSortsSupportedImages(t *testing.T) {
-	// @req IMGWALKER-015, IMGWALKER-028
+	// @req IMGWALKER-015, IMGWALKER-015-A
 	images, err := listImageFiles("/images", func(string) ([]os.DirEntry, error) {
 		return []os.DirEntry{
 			stubDirEntry{name: "z-last.JPG"},
