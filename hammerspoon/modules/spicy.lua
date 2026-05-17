@@ -83,6 +83,10 @@ function M.setup()
 	hs.hotkey.bind({ "alt", "shift" }, "S", function()
 		launchAskwrapper({ "ui", "followup" })
 	end)
+
+	hs.hotkey.bind({ "alt", "shift" }, "I", function()
+		launchAskwrapper({ "imgwalker" })
+	end)
 end
 
 return M

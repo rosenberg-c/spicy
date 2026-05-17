@@ -119,18 +119,24 @@ Lazy.nvim example:
 
 ## Hammerspoon module
 
-The Hammerspoon integration lives in `hammerspoon/modules/askwrapper.lua` and wraps the `spicy ask` CLI.
+The Hammerspoon integration lives in `hammerspoon/modules/spicy.lua` and wraps the `spicy` CLI launchers.
+
+Default hotkeys:
+
+- `alt+shift+A` -> `askwrapper ui ask`
+- `alt+shift+S` -> `askwrapper ui followup`
+- `alt+shift+I` -> `askwrapper imgwalker`
 
 Setup (symlink into your Hammerspoon config):
 
 ```sh
-ln -s "$(pwd)/hammerspoon/modules/askwrapper.lua" "$HOME/.hammerspoon/modules/askwrapper.lua"
+ln -s "$(pwd)/hammerspoon/modules/spicy.lua" "$HOME/.hammerspoon/modules/spicy.lua"
 ```
 
 Then enable it from your `~/.hammerspoon/init.lua`:
 
 ```lua
-require("modules.askwrapper").setup()
+require("modules.spicy").setup()
 ```
 
 ## XFCE shortcut (Debian)

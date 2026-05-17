@@ -17,7 +17,7 @@ func TestHammerspoonLaunchesAskwrapperOnly(t *testing.T) {
 	if !ok {
 		t.Fatal("runtime.Caller failed")
 	}
-	luaPath := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "../../../hammerspoon/modules/askwrapper.lua"))
+	luaPath := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "../../../hammerspoon/modules/spicy.lua"))
 	raw, err := os.ReadFile(luaPath)
 	if err != nil {
 		t.Fatalf("read lua module: %v", err)
