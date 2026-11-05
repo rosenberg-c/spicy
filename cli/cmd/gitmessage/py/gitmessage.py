@@ -27,8 +27,14 @@ def generate_commit_messages(prefix):
         prompt = (
             "You are a senior coder: write a short commit message, one row only. "
             "Do not include the actual diff, or any other thoughts, only the commit message. "
-            "Always use Capital character at the beginning of the commit message. "
+            "If no prefix was supplied, start with a lowercase conventional prefix: "
+            "use 'refactor: ' for refactors (e.g. 'refactor: simplify parsing'), "
+            "'test: ' for added or updated tests (e.g. 'test: add parser coverage'), "
+            "or another appropriate prefix for other changes. "
+            "If a prefix was supplied, write only the description without a prefix, "
+            "since it will be added separately. "
             "Do not add any quotes or special characters around the response.\n\n"
+            f"Prefix supplied: {'yes' if prefix else 'no'}\n"
             f"Diff:\n{diff_content}"
         )
 
@@ -84,4 +90,3 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     print_generated_message(args.prefix, args.copy)
-

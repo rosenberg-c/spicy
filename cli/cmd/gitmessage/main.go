@@ -91,7 +91,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Build prompt
-	prompt := buildPrompt(hint, diff)
+	prompt := buildPrompt(hint, diff, prefix)
 
 	// Generate commit message
 	fmt.Fprintf(os.Stderr, "Running: opencode run --agent build -m %s\n", model)
@@ -150,19 +150,27 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func buildPrompt(diff string, hint string) string {
+func buildPrompt(hint string, diff string, prefix string) string {
+	prefixInstruction := `Start with a lowercase conventional prefix:
+use "refactor: " for refactors (e.g. "refactor: simplify parsing"),
+"test: " for added or updated tests (e.g. "test: add parser coverage"),
+or another appropriate prefix for other changes.`
+	if prefix != "" {
+		prefixInstruction = "Write only the description without a prefix; the supplied prefix will be added separately."
+	}
+
 	return fmt.Sprintf(`You are a senior coder.
 Write a short commit message, one row only.
 Do not include the actual diff, or any other thoughts.
 Only output the commit message.
-Always use Capital character at the beginning.
+%s
 Do not add any quotes or special characters around the response.
 
 Hint:
 %s
 
 Diff:
-%s`, hint, diff)
+%s`, prefixInstruction, hint, diff)
 }
 
 func getStagedDiff(ctx context.Context) (string, error) {

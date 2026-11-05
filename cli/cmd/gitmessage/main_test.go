@@ -15,6 +15,7 @@ func TestBuildPrompt(t *testing.T) {
 		name         string
 		hint         string
 		diff         string
+		prefix       string
 		wantContains []string
 	}{
 		{
@@ -56,11 +57,21 @@ func TestBuildPrompt(t *testing.T) {
 				"commit message",
 			},
 		},
+		{
+			name:   "supplied prefix",
+			hint:   "focus on coverage",
+			diff:   "test diff",
+			prefix: "test",
+			wantContains: []string{
+				"without a prefix",
+				"supplied prefix will be added separately",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildPrompt(tt.hint, tt.diff)
+			got := buildPrompt(tt.hint, tt.diff, tt.prefix)
 
 			for _, want := range tt.wantContains {
 				if !strings.Contains(got, want) {
@@ -75,6 +86,15 @@ func TestBuildPrompt(t *testing.T) {
 			if !strings.Contains(got, "Diff:") {
 				t.Error("buildPrompt() missing 'Diff:' section")
 			}
+			if !strings.Contains(got, "Hint:\n"+tt.hint+"\n") {
+				t.Error("buildPrompt() has wrong hint section")
+			}
+			if !strings.Contains(got, "Diff:\n"+tt.diff) {
+				t.Error("buildPrompt() has wrong diff section")
+			}
+			if tt.prefix != "" && strings.Contains(got, "Start with a lowercase conventional prefix") {
+				t.Error("buildPrompt() requests another prefix when one was supplied")
+			}
 		})
 	}
 }
@@ -82,7 +102,7 @@ func TestBuildPrompt(t *testing.T) {
 func TestBuildPrompt_Format(t *testing.T) {
 	hint := "test hint"
 	diff := "test diff"
-	got := buildPrompt(hint, diff)
+	got := buildPrompt(hint, diff, "")
 
 	// Verify multiline format
 	lines := strings.Split(got, "\n")
@@ -95,7 +115,8 @@ func TestBuildPrompt_Format(t *testing.T) {
 	requirements := []string{
 		"short commit message",
 		"one row only",
-		"Capital character",
+		"refactor: ",
+		"test: ",
 	}
 
 	for _, req := range requirements {
