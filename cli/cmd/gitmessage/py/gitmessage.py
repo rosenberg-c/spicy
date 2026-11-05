@@ -70,7 +70,7 @@ def print_generated_message(prefix=None, copy=False):
     """Generate and print a commit message."""
     msg = generate_commit_messages(prefix)
     if msg:
-        print(f"==> {msg}")
+        print(msg)
         if copy:
             subprocess.run(["pbcopy"], input=msg, text=True)
 

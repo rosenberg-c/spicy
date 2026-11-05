@@ -114,7 +114,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Print result
-	fmt.Printf("==> %s\n", finalMsg)
+	fmt.Println(finalMsg)
 
 	// Optionally copy to clipboard
 	if copy {
