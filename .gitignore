@@ -1,0 +1,8 @@
+tmp
+bin
+*.out
+
+.history/
+.spicy**
+.env
+imgwalker/imgwalker
