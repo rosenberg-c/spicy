@@ -17,8 +17,7 @@ if vim.fn.has("nvim-0.8") ~= 1 then
   return
 end
 
--- SpicyAsk command
-vim.api.nvim_create_user_command("SpicyAsk", function(opts)
+local function ask_command(opts, session)
   -- Defer loading until command is used
   local spicy = require("spicy")
 
@@ -28,7 +27,7 @@ vim.api.nvim_create_user_command("SpicyAsk", function(opts)
   -- Handle range for visual selection
   if opts.range > 0 then
     -- Visual selection: inline it into the prompt
-    require("spicy.commands").ask_visual({ question = question })
+    require("spicy.commands").ask_visual({ question = question, session = session })
   else
     -- Include a pending visual selection as context when present
     local helpers = require("spicy.utils.helpers")
@@ -40,15 +39,27 @@ vim.api.nvim_create_user_command("SpicyAsk", function(opts)
         end_line,
         selection
       )
-      spicy.ask(question, { context = context })
+      spicy.ask(question, { context = context, session = session })
     else
-      spicy.ask(question)
+      spicy.ask(question, { session = session })
     end
   end
+end
+
+vim.api.nvim_create_user_command("SpicyAsk", function(opts)
+  ask_command(opts, false)
 end, {
   nargs = "*",
   range = true,
   desc = "Ask a question using spicy AI",
+})
+
+vim.api.nvim_create_user_command("SpicyAskSession", function(opts)
+  ask_command(opts, true)
+end, {
+  nargs = "*",
+  range = true,
+  desc = "Ask a question with a visible OpenCode session",
 })
 
 -- SpicyTutor command
@@ -61,11 +72,19 @@ end, {
   desc = "Generate a tutorial using spicy AI",
 })
 
--- SpicyExplain command
-vim.api.nvim_create_user_command("SpicyExplain", function(opts)
+vim.api.nvim_create_user_command("SpicyTutorSession", function(opts)
+  local spicy = require("spicy")
+  local topic = table.concat(opts.fargs, " ")
+  spicy.tutor(topic, { session = true })
+end, {
+  nargs = "*",
+  desc = "Generate a tutorial with a visible OpenCode session",
+})
+
+local function explain_command(opts, session)
   local commands = require("spicy.commands")
 
-  local options = {}
+  local options = { session = session }
 
   -- Handle range/visual selection
   if opts.range > 0 then
@@ -80,10 +99,22 @@ vim.api.nvim_create_user_command("SpicyExplain", function(opts)
   else
     commands.explain_visual(options)
   end
+end
+
+vim.api.nvim_create_user_command("SpicyExplain", function(opts)
+  explain_command(opts, false)
 end, {
   nargs = "*",
   range = true,
   desc = "Explain code using spicy AI",
+})
+
+vim.api.nvim_create_user_command("SpicyExplainSession", function(opts)
+  explain_command(opts, true)
+end, {
+  nargs = "*",
+  range = true,
+  desc = "Explain code with a visible OpenCode session",
 })
 
 -- SpicyGitmessage command

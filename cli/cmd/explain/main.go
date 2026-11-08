@@ -63,6 +63,10 @@ func main() {
 				Usage: "Save command history to .spicy/explain/",
 			},
 			&cli.BoolFlag{
+				Name:  "session",
+				Usage: "Keep the OpenCode session visible instead of archiving it",
+			},
+			&cli.BoolFlag{
 				Name:  "save",
 				Usage: "Save explanation to file (prompts if --output omitted)",
 			},
@@ -143,7 +147,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Generate explanation
 	fmt.Fprintln(os.Stderr, "Generating explanation...")
-	agentRunner := agent.New(verbose)
+	agentRunner := agent.NewWithArchive(verbose, !cmd.Bool("session"))
 	explanation, err := agentRunner.Run(ctx, model, prompt)
 	if err != nil {
 		return fmt.Errorf("generate explanation: %w", err)

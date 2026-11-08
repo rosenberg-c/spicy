@@ -48,6 +48,10 @@ func main() {
 				Usage: "Save command history to .spicy/ask/",
 			},
 			&cli.BoolFlag{
+				Name:  "session",
+				Usage: "Keep the OpenCode session visible instead of archiving it",
+			},
+			&cli.BoolFlag{
 				Name:  "save",
 				Usage: "Save output to timestamped markdown file",
 			},
@@ -104,7 +108,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Create agent
-	agentRunner := agent.New(verbose)
+	agentRunner := agent.NewWithArchive(verbose, !cmd.Bool("session"))
 
 	// Generate answer
 	fmt.Fprintln(os.Stderr, "Generating answer...")

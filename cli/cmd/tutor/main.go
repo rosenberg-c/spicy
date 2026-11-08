@@ -48,6 +48,10 @@ func main() {
 				Usage: "Save command history to .spicy/tutor/",
 			},
 			&cli.BoolFlag{
+				Name:  "session",
+				Usage: "Keep the generation session visible; validation stays archived",
+			},
+			&cli.BoolFlag{
 				Name:  "save",
 				Usage: "Save tutorial to file (prompts if --output omitted)",
 			},
@@ -119,8 +123,8 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Create separate agents for validation and generation
-	validationAgent := agent.New(verbose)
-	generationAgent := agent.New(verbose)
+	validationAgent := agent.NewWithArchive(verbose, true)
+	generationAgent := agent.NewWithArchive(verbose, !cmd.Bool("session"))
 
 	// Validate input
 	fmt.Fprintln(os.Stderr, "Validating input...")

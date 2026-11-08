@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"syscall"
 	"testing"
@@ -236,6 +237,26 @@ func TestAgent_RunnerInterface(t *testing.T) {
 
 	// Verify mockAgentRunner implements Runner interface
 	var _ Runner = (*mockAgentRunner)(nil)
+}
+
+// @req CORE-CLI-010
+func TestRunArgsSessionVisibility(t *testing.T) {
+	tests := []struct {
+		name    string
+		archive bool
+		want    []string
+	}{
+		{"archived", true, []string{"run", "--archived", "-m", "example/model", "prompt"}},
+		{"visible", false, []string{"run", "-m", "example/model", "prompt"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := runArgs("example/model", "prompt", tt.archive)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("runArgs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestMockUsage(t *testing.T) {

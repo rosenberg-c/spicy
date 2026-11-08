@@ -1,11 +1,63 @@
 package main
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/urfave/cli/v3"
 	"module/lib/internal/cliutil"
 )
+
+// @req CORE-CLI-010
+func TestTutorValidationAlwaysArchived(t *testing.T) {
+	for _, session := range []bool{false, true} {
+		t.Run(map[bool]string{false: "default", true: "session"}[session], func(t *testing.T) {
+			dir := t.TempDir()
+			logPath := filepath.Join(dir, "calls")
+			script := `#!/bin/sh
+if [ "$2" = "--archived" ]; then printf 'archived\n' >> "$SPICY_CALLS"; else printf 'visible\n' >> "$SPICY_CALLS"; fi
+case "$*" in
+  *"Respond ONLY with a valid JSON"*) printf '%s\n' '{"action":"continue","reason":"specific","suggested_filename":"guide.md"}' ;;
+  *) printf '%s\n' 'Tutorial content' ;;
+esac
+`
+			if err := os.WriteFile(filepath.Join(dir, "opencode"), []byte(script), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+			t.Setenv("SPICY_CALLS", logPath)
+			command := &cli.Command{
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "model", Value: "custom/test"},
+					&cli.BoolFlag{Name: "session"},
+				},
+				Action: run,
+			}
+			args := []string{"tutor"}
+			if session {
+				args = append(args, "--session")
+			}
+			args = append(args, "how to read CSV files")
+			if err := command.Run(context.Background(), args); err != nil {
+				t.Fatal(err)
+			}
+			got, err := os.ReadFile(logPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := "archived\narchived\n"
+			if session {
+				want = "archived\nvisible\n"
+			}
+			if string(got) != want {
+				t.Errorf("OpenCode calls = %q, want %q", got, want)
+			}
+		})
+	}
+}
 
 // @req CLI-TUTOR-001
 func TestGetUserInput(t *testing.T) {

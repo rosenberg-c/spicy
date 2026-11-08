@@ -24,12 +24,17 @@ For keymaps and more options, see [example-config.lua](example-config.lua) and [
 | Command | Action |
 | --- | --- |
 | `:SpicyAsk [question]` | Ask a question; prompts if no question is given; accepts a visual selection |
+| `:SpicyAskSession [question]` | Ask with a visible OpenCode session |
 | `:SpicyCtxEdit` | Edit a visual selection using a prompt |
 | `:SpicyExplain` | Explain the current buffer or a selection |
+| `:SpicyExplainSession` | Explain with a visible OpenCode session |
 | `:SpicyTutor [topic]` | Generate a tutorial |
+| `:SpicyTutorSession [topic]` | Generate a tutorial with a visible OpenCode session |
 | `:SpicyGitmessage [context]` | Draft a message from staged changes |
 
 For example, select code in visual mode and run `:'<,'>SpicyAsk explain this code`, or use `:'<,'>SpicyCtxEdit` to edit the selection. Output can appear in a float, buffer, or split. The plugin enables CLI `--history` by default, saving JSON entries and matching result Markdown files under `.spicy/<command>/` in the working directory.
+
+Ask, Explain, and Tutor archive their OpenCode sessions by default. The `Session` commands keep the answer or tutorial-generation session visible; Tutor's preliminary validation session remains archived. Archived sessions are still stored by OpenCode. See [example-config.lua](example-config.lua) for opt-in keymaps.
 
 ## Configuration
 

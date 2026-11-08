@@ -78,3 +78,13 @@ matching global entry, and global `models` keys absent from the local file
 are preserved. A missing, unreadable, or invalid local config file must be
 ignored silently (no crash, no stderr noise) so the global config and
 fallback still apply.
+
+### `CORE-CLI-010`
+
+Owner: `cli/internal/agent/agent.go`, `cli/internal/agent/agent_test.go`,
+`cli/cmd/ask/main.go`, `cli/cmd/explain/main.go`, `cli/cmd/tutor/main.go`
+
+Ask and explain must archive their OpenCode runs by default. Their `--session`
+flag must leave those runs visible. Tutor validation must always be archived;
+tutor generation must be archived by default and visible with `--session`.
+Other CLI commands must retain their existing session visibility.

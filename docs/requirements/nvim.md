@@ -68,3 +68,14 @@ the ask CLI as context. That context must be transported via `--context-file`
 (a temp file that is removed on completion, timeout, or failure) rather than
 inlined into the prompt text. A synchronous CLI spawn failure must surface the
 error, stop the spinner, and clean up instead of leaving the UI hung.
+
+### `NVIM-SESSION-001`
+
+Owner: `nvim/plugin/spicy.lua`, `nvim/lua/spicy/utils/cli.lua`,
+`nvim/lua/spicy/commands/ask.lua`, `nvim/lua/spicy/commands/explain.lua`,
+`nvim/lua/spicy/commands/tutor.lua`, `nvim/tests/cli_spec.lua`
+
+The normal Ask, Explain, and Tutor Neovim commands must use archived runs.
+Their `Session` counterparts must pass `--session` to the corresponding CLI
+command while preserving the original input, selection, and output behavior.
+Neovim must not install default keymaps; example keymaps may be documented.

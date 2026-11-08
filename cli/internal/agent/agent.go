@@ -14,10 +14,15 @@ import (
 
 type Agent struct {
 	verbose bool
+	archive bool
 	logger  *slog.Logger
 }
 
 func New(verbose bool) *Agent {
+	return NewWithArchive(verbose, false)
+}
+
+func NewWithArchive(verbose, archive bool) *Agent {
 	// Set up logger with appropriate log level
 	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -30,8 +35,17 @@ func New(verbose bool) *Agent {
 
 	return &Agent{
 		verbose: verbose,
+		archive: archive,
 		logger:  slog.New(handler),
 	}
+}
+
+func runArgs(model, prompt string, archive bool) []string {
+	args := []string{"run"}
+	if archive {
+		args = append(args, "--archived")
+	}
+	return append(args, "-m", model, prompt)
 }
 
 // scratchCwdDir returns the pinned working directory for agent subprocesses,
@@ -68,8 +82,7 @@ func killProcessGroup(cmd *exec.Cmd) {
 }
 
 func (a *Agent) Run(ctx context.Context, model, prompt string) (string, error) {
-	// Build command: opencode run -m <model> <prompt>
-	cmd := exec.CommandContext(ctx, "opencode", "run", "-m", model, prompt)
+	cmd := exec.CommandContext(ctx, "opencode", runArgs(model, prompt, a.archive)...)
 
 	// Run in its own process group so the whole tree can be killed on
 	// timeout or failure.

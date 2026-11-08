@@ -31,6 +31,8 @@ sudo apt install pkg-config libx11-dev libxkbcommon-dev libxkbcommon-x11-dev \
 
 `ask`, `explain`, and `tutor` print to stdout by default; use `--save` to save their output. `v-edit` prints updated text unless `--write` is given. `gitmessage` reads staged changes. `record cat 1` prints a saved entry; `record export` exports to Markdown (interactive unless `--file` is specified).
 
+Ask, Explain, and Tutor archive OpenCode runs by default (the sessions are still stored). Pass `--session` to leave the result session visible; Tutor always archives its preliminary validation run. Other commands keep their existing session behavior.
+
 Use `--history` on AI commands to save JSON runs under `.spicy/<command>/`, with a matching `.md` file containing each returned result. `askwrapper` maintains its own history at `~/.askwrapper/history.json`. In its prompt, enter `:N` to preview an entry, `:dN` to delete one, or an empty response to cancel. `askwrapper ui followup` asks a question using an earlier entry as context.
 
 Run `<command> --help` for flags and more examples.

@@ -118,12 +118,24 @@ vim.keymap.set("n", "<leader>sa", "<cmd>SpicyAsk<CR>", {
 	desc = "Spicy: Ask a question",
 })
 
+vim.keymap.set("n", "<leader>sA", "<cmd>SpicyAskSession<CR>", {
+	desc = "Spicy: Ask with visible session",
+})
+
 vim.keymap.set("n", "<leader>st", "<cmd>SpicyTutor<CR>", {
 	desc = "Spicy: Generate tutorial",
 })
 
+vim.keymap.set("n", "<leader>sT", "<cmd>SpicyTutorSession<CR>", {
+	desc = "Spicy: Generate tutorial with visible session",
+})
+
 vim.keymap.set("n", "<leader>se", "<cmd>SpicyExplain<CR>", {
 	desc = "Spicy: Explain code",
+})
+
+vim.keymap.set("n", "<leader>sE", "<cmd>SpicyExplainSession<CR>", {
+	desc = "Spicy: Explain with visible session",
 })
 
 vim.keymap.set("n", "<leader>sg", "<cmd>SpicyGitmessage<CR>", {
@@ -139,8 +151,16 @@ vim.keymap.set("v", "<leader>sa", ":'<,'>SpicyAsk<CR>", {
 	desc = "Spicy: Ask about selection",
 })
 
+vim.keymap.set("v", "<leader>sA", ":'<,'>SpicyAskSession<CR>", {
+	desc = "Spicy: Ask about selection with visible session",
+})
+
 vim.keymap.set("v", "<leader>se", ":'<,'>SpicyExplain<CR>", {
 	desc = "Spicy: Explain selection",
+})
+
+vim.keymap.set("v", "<leader>sE", ":'<,'>SpicyExplainSession<CR>", {
+	desc = "Spicy: Explain selection with visible session",
 })
 
 -- Alternative keymap examples:

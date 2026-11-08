@@ -91,4 +91,20 @@ describe("spicy.utils.cli", function()
 
     assert.same({ "-m", "ask-model", "--history" }, cli.base_args("ask"))
   end)
+
+  it("passes --session only for explicit visible sessions", function()
+    -- @req NVIM-SESSION-001
+    config.setup({ default_model = "shared-model" })
+
+    for _, name in ipairs({ "ask", "explain", "tutor" }) do
+      assert.same(
+        { "-m", "shared-model", "--history" },
+        cli.base_args(name)
+      )
+      assert.same(
+        { "-m", "shared-model", "--session", "--history" },
+        cli.base_args(name, { session = true })
+      )
+    end
+  end)
 end)

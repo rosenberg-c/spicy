@@ -45,6 +45,10 @@ function M.base_args(command_name, opts, include_history)
   local verbose = opts.verbose or config.get("verbose")
   add_verbose(args, verbose)
 
+  if opts.session then
+    table.insert(args, "--session")
+  end
+
   if include_history ~= false then
     add_history(args, true)
   end
