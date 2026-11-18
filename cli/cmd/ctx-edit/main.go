@@ -112,10 +112,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("--write requires --file")
 	}
 
-	if err := agent.ValidateAuth(model); err != nil {
-		return fmt.Errorf("auth error: %w", err)
-	}
-
 	promptText := buildPrompt(prompt, contextInput)
 
 	fmt.Fprintln(os.Stderr, "Generating update...")

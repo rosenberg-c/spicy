@@ -102,11 +102,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("get context input: %w", err)
 	}
 
-	// Validate auth before running
-	if err := agent.ValidateAuth(model); err != nil {
-		return fmt.Errorf("auth error: %w", err)
-	}
-
 	// Create agent
 	agentRunner := agent.NewWithArchive(verbose, !cmd.Bool("session"))
 

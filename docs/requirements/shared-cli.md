@@ -31,14 +31,16 @@ invocation.
 
 ### `CORE-CLI-006`
 
-Owner: `cli/internal/agent/auth.go`, `cli/internal/agent/auth_test.go`
+Owner: `cli/cmd/ask/main.go`, `cli/cmd/ask/main_test.go`,
+`cli/cmd/explain/main.go`, `cli/cmd/explain/main_test.go`,
+`cli/cmd/tutor/main.go`, `cli/cmd/tutor/main_test.go`,
+`cli/cmd/gitmessage/main.go`, `cli/cmd/gitmessage/main_test.go`,
+`cli/cmd/ctx-edit/main.go`, `cli/cmd/ctx-edit/main_test.go`,
+`cli/internal/agent/agent.go`
 
-CLI auth preflight must keep friendly validation for known providers such as
-OpenAI and Anthropic, but must not reject unknown or custom model provider
-identifiers before `opencode run` executes. Expired OpenAI or Anthropic OAuth
-access tokens with a refresh token must not block `opencode run`, so OpenCode
-can refresh them; missing credentials and expired tokens without a refresh
-token must still produce actionable errors.
+CLI commands that invoke OpenCode must let `opencode run` handle authentication
+without rejecting requests based on local auth file presence or token expiry.
+If OpenCode fails, commands must return the execution failure.
 
 ### `CORE-CLI-007`
 

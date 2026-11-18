@@ -132,11 +132,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		language = detectLanguage(source, code)
 	}
 
-	// Validate auth before running
-	if err := agent.ValidateAuth(model); err != nil {
-		return err
-	}
-
 	contextContent, err := getContextInput(contextInput, contextFile)
 	if err != nil {
 		return fmt.Errorf("get context input: %w", err)
