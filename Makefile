@@ -31,7 +31,8 @@ install: install-cli install-nvim
 .PHONY: install-nvim
 install-nvim:
 	@mkdir -p "$(SPICY_CONFIG_DIR)"
-	ln -sfnT "$(CURDIR)/nvim" "$(SPICY_CONFIG_DIR)/nvim"
+	@test ! -d "$(SPICY_CONFIG_DIR)/nvim" || test -L "$(SPICY_CONFIG_DIR)/nvim"
+	ln -sfn "$(CURDIR)/nvim" "$(SPICY_CONFIG_DIR)/nvim"
 
 .PHONY: install-cli
 install-cli:
