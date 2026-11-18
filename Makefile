@@ -1,5 +1,6 @@
 SPECSYNC ?= specsync
 INSTALL_DIR ?= $(HOME)/.local/bin
+SPICY_CONFIG_DIR ?= $(HOME)/.config/spicy
 
 .PHONY: help
 help:
@@ -8,7 +9,7 @@ help:
 	"  make test      - run CLI + Neovim tests" \
 	"  make test-cli  - run CLI tests" \
 	"  make test-nvim - run Neovim plugin tests" \
-	"  make install   - install CLI tools" \
+	"  make install   - install CLI tools and Neovim plugin" \
 	"  make install-imgwalker - install imgwalker GUI app" \
 	"  make install-gio - install CLI tools + Gio askwrapper" \
 	"  make sync-test-matrix - regenerate docs/TEST_MATRIX.md"
@@ -25,7 +26,12 @@ test-nvim:
 	$(MAKE) -C nvim test
 
 .PHONY: install
-install: install-cli
+install: install-cli install-nvim
+
+.PHONY: install-nvim
+install-nvim:
+	@mkdir -p "$(SPICY_CONFIG_DIR)"
+	ln -sfnT "$(CURDIR)/nvim" "$(SPICY_CONFIG_DIR)/nvim"
 
 .PHONY: install-cli
 install-cli:
